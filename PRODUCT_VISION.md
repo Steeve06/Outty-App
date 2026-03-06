@@ -1,33 +1,36 @@
-# Outty: Your Ultimate Adventure Partner.  
-## Vision: 
-To transform the way people experience the outdoors by bridging the gap between digital discovery and real-world companionship, ensuring no adventurer ever has to summit, paddle, or explore alone.
+# Outty App  
 
-## Project Overview.  
-Outty is a mobile social-discovery platform built for the modern explorer. Whether you are a weekend hiker or a professional mountaineer, Outty uses a sophisticated matching engine to connect you with like-minded partners based on activity, skill level, and personality "vibe."
+## Vision  
+Outty aims to connect people through their shared love of real-world outdoor adventures. Using AI-assisted algorithms, our app helps users find and connect with like-minded adventurers. From mountain climbers to deep-sea scuba divers, Outty helps bring your adventures to life by building long-lasting connections.  
 
-## Product Goals & Objectives.  
-It is divivded into Near-Term (what will be ready by the end of semester) and Far-Term (how the app would evolve in the real world).
-### 1. Near-Term Goals 
+## Project Overview  
+Outty is a mobile social-discovery platform built for the modern explorer. Whether you are a weekend hiker or a professional mountaineer, Outty uses a sophisticated matching engine to connect you with like-minded partners based on activity type, skill level, and personality “vibe.”  
 
-- Trust & Safety First: Implement a secure SSO (Single Sign-On) and profile verification system (Instagram link) to ensure users feel safe meeting strangers in remote areas.
+## Product Goals & Objectives  
+- **Near-term goals** are what will be achieved by the end of the semester.  
+- **Far-term goals** describe how the app will evolve in the real world over time.  
 
-- Precision Matching: Build a weighted algorithm that prioritizes matches based on Skill Level compatibility and Activity Type over just physical distance.
+### 1. Near-Term Goals  
+- Deliver a secure, user-friendly account creation and profile management system.  
+- Implement AI-assisted features that help users find companions and select compatible adventures.  
+- Provide in-app communication tools for coordination and planning.  
+- Integrate third-party social media platforms to help enforce authenticity.  
+- Provide a clean, responsive, and easy-to-use UI that reflects the mission of connecting like-minded adventurers.  
 
-- Seamless Coordination: Provide a real-time messaging interface that allows users to move from "matched" to "planned" within 5 minutes of connecting.
+### 2. Far-Term Vision (The Outty Future)  
+- Provide an AI-powered suggestion engine that curates activities based on both users’ skill levels and adventure preferences.  
+- Introduce **“Adventure Squads”** — a feature to connect and coordinate with multiple users for shared group adventures.  
 
-### 2. Far-Term Vision (The Outty Future)
+## Key Features  
+- **Smart Matching:** A swipe-based UI powered by a matching algorithm that utilizes distance, skill level, personal preferences, and activity types.  
+- **Secure Authentication:** Integrated social SSO (Google/Apple) for frictionless and secure onboarding.  
+- **Social Media Integration:** Utilize third-party social media platforms for additional user verification and authenticity.  
+- **Real-Time Coordination:** In-app messaging for secure coordination of adventures.  
+- **Geospatial Discovery:** Precise “mile-range” filtering using PostGIS geography logic.  
 
-- AI Adventure Concierge: An AI-powered suggestion engine that looks at both users' skill levels and recommends specific local trails or routes that fit both their abilities.
+## Stakeholders  
+- **End Users (Adventure Seekers):** Individuals looking to discover and connect with compatible adventure partners.  
+- **Product Owner:** Responsible for defining the vision, managing the product backlog, and ensuring the app meets user needs.  
+- **Scrum Master:** Facilitates Scrum practices, removes obstacles, and supports the team’s agile workflow.  
+- **Development Team:** Designs, develops, tests, and maintains the app’s functionality throughout the project lifecycle.  
 
-- Community Groups: Moving beyond 1-on-1 matches to "Adventure Squads"—group swiping for hiking clubs or climbing gym meetups.
-
-## Key Features
-- Smart Matching: A swipe-based UI powered by a weighted algorithm considering distance, skill level, and activity type.
-
-- Secure Authentication: Integrated Social SSO (Google/Apple) for friction-less and secure onboarding.
-
-- Social Proof: Instagram API integration to verify user authenticity through recent outdoor media.
-
-- Real-Time Coordination: Full-featured in-app messaging with support for text and voice notes.
-
-- Geospatial Discovery: Precise "mile-range" filtering using PostGIS geography logic.
