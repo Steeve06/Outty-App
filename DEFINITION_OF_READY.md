@@ -1,0 +1,14 @@
+ID	Priority (MoSCoW)	Title	User Story	Additional Details (Acceptance Criteria)	Points
+01	Must	SSO Authentication	As a user, I want to sign up via Google/Apple SSO, so that I can access the app securely.	Integrate Firebase Auth; Support JWT session management.	5 
+02	Must	Profile & PII CRUD	As an adventurer, I want to create and delete my profile, so that my identity is managed.	PostgreSQL CRUD operations; Support for encrypted PII.	3 
+03	Must	Adventure Matrix	As a user, I want to set my skill levels and adventure types, so that the engine knows my capability.	Define parameters for skiing, hiking, etc. (Beginner to Expert).	5 
+04	Must	Location Obfuscation	As a user, I want to hide my exact location so that my privacy is protected while still showing my general area.	Implement fuzzed coordinates in PostGIS; show "miles away" only.	5
+05	Must	Account Privacy	As a user, I want to delete my data, so that I comply with data privacy rights.	Cascade delete across Postgres and Firebase Storage.	3 
+06	Must	Discovery Engine	As a user, I want to see users in a specific mile range, so that I can find local partners.	Geospatial filtering; Node.js logic for radius-based queries.	8 
+07	Should	The Swipe Interface	As a user, I want to swipe left or right, so that I can filter my potential matches.	UI state management; Logic to trigger a "Match" on mutual likes.	5 
+08	Should	Matching Algorithm	As a user, I want to be matched by attitude and skill, so that my partners are compatible.	Multi-parameter weighted sorting in Node.js/Postgres.	13 
+09	Should	Photo Management	As a user, I want to upload and delete photos, so that my profile is visually appealing.	Firebase Storage integration; Image compression in Node.js.	3 
+10	Should	Real-time Chat	As a matched pair, we want to text/chat, so that we can coordinate our outing.	Firebase Firestore for real-time message syncing.	5 
+11	Should	User Reporting	As a user, I want to block or report a profile if they are being inappropriate or unsafe.	Create a 'Reports' table in Postgres; Disable UI access for blocked IDs.	3
+12	Could	Social Integration	As a user, I want to link my Instagram, so that I can showcase my past adventures.	Meta API OAuth2 flow; Display recent media grid.	8 
+13	Could	Advanced Messaging	As a matched user, I want to send voice notes and video call, so I can verify my partner.	Integration of Agora/Daily SDK; Storage for audio blobs.	8
