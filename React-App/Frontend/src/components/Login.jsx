@@ -18,8 +18,14 @@ async function handleLogin(e) {
   try {
     await signInWithEmailAndPassword(auth, email, password);
     navigate('/dashboard');
-  } catch {
-    setError('Invalid email or password.');
+  } catch (error) {
+    if (error.code === 'auth/wrong-password') {
+      setError('Incorrect password. Please try again.')
+    } else if (error.code === 'auth/user-not-found') {
+      setError('User not found')
+    }else{
+      setError('Invalid email or password.');
+    }
   } finally {
     setLoading(false);     // ← add this
   }

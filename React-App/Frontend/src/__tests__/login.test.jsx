@@ -24,6 +24,10 @@ describe('Login Component', () => {
         expect(screen.getByLabelText('email')).toBeInTheDocument();
         expect(screen.getByLabelText('password')).toBeInTheDocument();
     });
+    it('should show password is masked', () => {
+        render(<Login/>);
+        expect(screen.getByLabelText('password')).toHaveAttribute('type', 'password');
+    });
     it('should show login button renders', () => {
         render(<Login/>);
         expect(screen.getByRole('button', {name: /login/i })).toBeInTheDocument();
@@ -36,6 +40,15 @@ describe('Login Component', () => {
         fireEvent.submit(screen.getByRole('button', {name: /login/i }));
         await screen.findByText('Invalid email or password.');
         expect(screen.getByText('Invalid email or password.')).toBeInTheDocument();
+    })
+    it('should show error message of wrong password', async () => {
+        signInWithEmailAndPassword.mockRejectedValueOnce({code :'auth/wrong-password'});
+        render(<Login/>)
+        fireEvent.change(screen.getByLabelText('email'), { target: { value: 'test@email.com' } });
+        fireEvent.change(screen.getByLabelText('password'), { target: { value: '123' } });
+        fireEvent.submit(screen.getByRole('button', {name: /login/i }));
+        await screen.findByText('Incorrect password. Please try again.');
+        expect(screen.getByText('Incorrect password. Please try again.')).toBeInTheDocument();
     })
     it('should successfully navigate user to dashboard', async () => {
         signInWithEmailAndPassword.mockResolvedValueOnce({user: {uid: '123', email: 'test@email.com'}});
