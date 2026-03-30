@@ -26,3 +26,7 @@ Umar
 - Yesterday, I started working on the login tests for different scenarios.
 - Today, I’ll continue implementing those tests and reviewing BDD concepts.
 - No blockers.
+
+# Screenshot of meeting
+<img width="1021" height="370" alt="image" src="https://github.com/user-attachments/assets/02620538-f3aa-4a14-abbb-68613fcf15d6" />
+
