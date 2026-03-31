@@ -11,7 +11,7 @@ import {
   Image,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../App';
+import { RootStackParamList } from '../App/App';
 import { localUsers } from './LoginScreen';
 
 type Props = {
