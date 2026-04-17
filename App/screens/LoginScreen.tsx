@@ -124,11 +124,6 @@ export default function LoginScreen({ navigation }: Props) {
             <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
               <Text style={styles.signupLink}>Sign up</Text>
             </TouchableOpacity>
-
-            {/* Temp Navigation To Get To Index/Main Page */}
-            <TouchableOpacity onPress={() => navigation.navigate('Index')}>
-              <Text style={styles.signupLink}>Go To Main App</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>

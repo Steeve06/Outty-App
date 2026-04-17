@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   Alert,
-  TextInput
+  TextInput,
+  ScrollView
 } from 'react-native';
 
 import {
@@ -28,6 +30,8 @@ type Message = {
 };
 
 export default function MessagingScreen() {
+  const navigation = useNavigation<any>();
+
   const [loading, setLoading] = useState(false);
   const [messageInput, setMessageInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -67,12 +71,16 @@ export default function MessagingScreen() {
     }
   };
 
-
-
-
   return (
+
     <View style={styles.container}>
       <View style={styles.card}>
+        <Text style={styles.backBtn}
+          onPress={() => {
+            navigation.navigate('MatchesScreen');
+          }}>
+          Back
+        </Text>
 
         <View style={styles.topBar}>
           <View style={styles.profileImageOuterDiv}>
@@ -90,28 +98,32 @@ export default function MessagingScreen() {
         <View style={styles.divider} />
 
         <View style={styles.messagesOuterContainer}>
-          {messages.map((item) =>
-          (
-            <View style={{marginBottom: 15}}>
-              <View key={item.id} style={styles.outgoingGroup}>
-                <View style={styles.outgoingMessage}>
-                  <Text style={{ color: '#fff' }}>
-                    {item.message ?? ''}
+          <ScrollView
+            showsVerticalScrollIndicator={true}
+            contentContainerStyle={styles.messagesScrollContent}>
+            {messages.map((item) =>
+            (
+              <View style={{ marginBottom: 15, marginRight: 20 }}>
+                <View key={item.id} style={styles.outgoingGroup}>
+                  <View style={styles.outgoingMessage}>
+                    <Text style={{ color: '#fff' }}>
+                      {item.message ?? ''}
+                    </Text>
+                  </View>
+
+                  <Text style={styles.messageTimestamp}>
+                    {item.sentAt?.toDate
+                      ? item.sentAt.toDate().toLocaleTimeString([], {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })
+                      : 'Sending...'}
                   </Text>
                 </View>
-
-                <Text style={styles.messageTimestamp}>
-                  {item.sentAt?.toDate
-                    ? item.sentAt.toDate().toLocaleTimeString([], {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })
-                    : 'Sending...'}
-                </Text>
               </View>
-            </View>
+            ))}
+          </ScrollView>
 
-          ))}
         </View>
 
         <View style={{ marginBottom: 20 }}>
@@ -148,7 +160,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   card: {
-    height: 700,
+    height: 800,
     width: '100%',
     maxWidth: 1000,
     backgroundColor: '#fff',
@@ -208,13 +220,13 @@ const styles = StyleSheet.create({
   },
 
   messagesOuterContainer: {
-    minHeight: 400,
+    height: 400,
     minWidth: 100,
     borderColor: '#000',
     borderWidth: 3,
     marginBottom: 10,
     borderRadius: 25,
-    padding: 20
+    padding: 20,
   },
 
   messagesProfileIcon: {
@@ -264,6 +276,21 @@ const styles = StyleSheet.create({
     minHeight: 50,
     paddingHorizontal: 20,
     fontSize: 15,
+  },
+
+  backBtn: {
+    borderWidth: 1,
+    borderRadius: 25,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    width: 'auto',
+    marginBottom: 20,
+    cursor: 'pointer'
+  },
+
+
+  messagesScrollContent: {
+    paddingBottom: 10,
   },
 
 });
