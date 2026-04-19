@@ -1,56 +1,57 @@
-const express = require('express');
-const router = express.Router();
-const { createProfile, getProfile, updateProfile, deleteProfile } = require('../services/profileServices')
+// profileRoutes.tests.js (Consolidated standard for both)
+import supertest from 'supertest';
+import app from '../../index.js';
+import {
+  createProfile, 
+  getProfile
+} from '../services/profileServices.js';
 
+jest.mock('../services/profileServices.js');
+const request = supertest(app);
 
-//using /:uid as dynamic parameter to create profile
-router.post('/:uid', async (req, res) =>{
-    if (!req.body || Object.keys(req.body).length === 0) {
-            return res.status(400).json({ error: 'Request body is empty' });
-    }
-    try{
-        const profile = await createProfile(req.params.uid, req.body);
-        res.status(201).json(profile);
-    }catch (error) {
-        console.log(error);
-        res.status(409).json({error: error.message});
-    }
-})
+describe('Profile API Suite', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-//using /:uid as dynamic parameter to read profile
-router.get('/:uid', async (req, res) => {
-    try{
-        const profile = await getProfile(req.params.uid);
-        res.status(200).json(profile);
-    }catch (error) {
-        console.log(error);
-        res.status(404).json({error: error.message});
-    }
+  describe('POST /api/profile/:uid', () => {
+    it('should return a 201 after successful profile creation', async () => {
+      createProfile.mockResolvedValue('profile created');
+      const res = await request
+        .post('/api/profile/231')
+        .send({ name: 'Andre Mocto' });
+      
+      expect(res.status).toBe(201);
+      expect(res.body).toBe('profile created');
+    });
+
+    it('should return a 400 if request body is empty', async () => {
+      const res = await request
+        .post('/api/profile/231')
+        .send({});
+      
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('Request body is empty');
+    });
+  });
+
+  describe('GET /api/profile/:uid', () => {
+    it('should return a 200 if the profile exists', async () => {
+      const mockData = { uid: '231', name: 'Andre Mocto' };
+      getProfile.mockResolvedValue(mockData);
+      
+      const res = await request.get('/api/profile/231');
+      
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockData);
+    });
+
+    it('should return a 404 error if profile does not exist', async () => {
+      getProfile.mockRejectedValue(new Error('Profile not found'));
+      const res = await request.get('/api/profile/20');
+      
+      expect(res.status).toBe(404);
+      expect(res.body.error).toBe('Profile not found');
+    });
+  });
 });
-
-//using /:uid as dynamic parameter to edit profile
-router.patch('/:uid', async (req, res) => {
-    if (!req.body || Object.keys(req.body).length === 0) {
-            return res.status(400).json({ error: 'Request body is empty' });
-    }
-    try{
-        const profile = await updateProfile(req.params.uid, req.body);
-        res.status(200).json(profile);
-    }catch (error) {
-        console.log(error);
-        res.status(404).json({error: error.message});
-    }
-});
-
-//using /:uid as dynamic parameter to delete profile
-router.delete('/:uid', async(req, res) => {
-    try{
-        const profile = await deleteProfile(req.params.uid);
-        res.status(200).json(profile);
-    }catch (error) {
-        console.log(error);
-        res.status(404).json({error: error.message});
-    }
-});
-
-module.exports = router;

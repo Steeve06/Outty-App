@@ -1,0 +1,34 @@
+name: Outty-App Linting Check
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # Frontend Linting
+      - name: Install & Lint Frontend
+        working-directory: ./App
+        run: |
+          npm install
+          npm run lint # Ensure you have a "lint" script in App/package.json
+
+      # Backend Linting
+      - name: Install & Lint Backend
+        working-directory: ./App/server
+        run: |
+          npm install
+          npm run lint # Ensure you have a "lint" script in server/package.json

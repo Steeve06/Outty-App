@@ -4,10 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "lint": "eslint ."
   },
   "jest": {
-      "testMatch": ["**/tests/**/*.tests.js"]
+    "testMatch": [
+      "**/tests/**/*.tests.js"
+    ]
   },
   "keywords": [],
   "author": "",
@@ -19,7 +22,10 @@
     "firebase-admin": "^13.7.0"
   },
   "devDependencies": {
+    "eslint": "^8.57.1",
+    "globals": "^17.5.0",
     "jest": "^30.3.0",
-    "supertest": "^7.2.2"
+    "supertest": "^7.2.2",
+    "typescript-eslint": "^8.58.2"
   }
 }

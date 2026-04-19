@@ -1,53 +1,59 @@
-const { db } = require('../../../firebase');
+import { db } from '../../../firebase.js';
 
-//async funcion to create and store unique user profile data
-async function createProfile (uid, profileData){
-    //creates a reference to the specific user document in the profiles collection
-    const docRef = db.collection('profiles').doc(uid);
-    const doc = await docRef.get();
-    if(doc.exists){
-        throw new Error ('Profile already exists')
-    }
-    await docRef.set(profileData);
-    return ('profile created');
-};
-
-//async function to get user profile data
-async function getProfile (uid) {
-    //creates a reference to the specific user document in the profiles collection
-    const docRef = db.collection('profiles').doc(uid);
-    const doc = await docRef.get();
-    if(doc.exists) {
-        return doc.data();
-    } else {
-        throw new Error ('Profile not found');
-    }
-};
-
-//async function to update user profile data
-async function updateProfile (uid, updatedData) {
-    //creates a reference to the specific user document in the profiles collection
-    const docRef = db.collection('profiles').doc(uid);
-    const doc = await docRef.get();
-    if(doc.exists) {
-        const update = await docRef.update(updatedData);
-        return ('Profile successfully updated ')
-    } else {
-        throw new Error ('Profile not found')
-    }
+/**
+ * Creates and stores unique user profile data.
+ */
+async function createProfile(uid, profileData) {
+  const docRef = db.collection('profiles').doc(uid);
+  const doc = await docRef.get();
+  if (doc.exists) {
+    throw new Error('Profile already exists');
+  }
+  await docRef.set(profileData);
+  return 'profile created';
 }
 
-//async function to delete user profile data
-async function deleteProfile (uid) {
-    //creates a reference to the specific user document in the profiles collection
-    const docRef = db.collection('profiles').doc(uid);
-    const doc = await docRef.get();
-    if(doc.exists) {
-        await docRef.delete()
-        return ('Profile successfully deleted ')
-    } else {
-        throw new Error ('Profile not found')
-    }
+/**
+ * Retrieves user profile data.
+ */
+async function getProfile(uid) {
+  const docRef = db.collection('profiles').doc(uid);
+  const doc = await docRef.get();
+  if (doc.exists) {
+    return doc.data();
+  }
+  throw new Error('Profile not found');
 }
 
-module.exports = { createProfile, getProfile, updateProfile, deleteProfile };
+/**
+ * Updates user profile data.
+ */
+async function updateProfile(uid, updatedData) {
+  const docRef = db.collection('profiles').doc(uid);
+  const doc = await docRef.get();
+  if (doc.exists) {
+    await docRef.update(updatedData);
+    return 'Profile successfully updated';
+  }
+  throw new Error('Profile not found');
+}
+
+/**
+ * Deletes user profile data.
+ */
+async function deleteProfile(uid) {
+  const docRef = db.collection('profiles').doc(uid);
+  const doc = await docRef.get();
+  if (doc.exists) {
+    await docRef.delete();
+    return 'Profile successfully deleted';
+  }
+  throw new Error('Profile not found');
+}
+
+export {
+  createProfile,
+  getProfile,
+  updateProfile,
+  deleteProfile,
+};

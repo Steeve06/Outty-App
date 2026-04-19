@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const { width } = Dimensions.get('window');
+
+const GREEN = '#2D9B6F';
 
 export default function DiscoverScreen() {
   return (
@@ -19,8 +20,10 @@ export default function DiscoverScreen() {
               <Text style={styles.name}>Jordan Peak, 30</Text>
               <Text style={styles.location}>📍 Boulder, CO</Text>
               <View style={styles.tagRow}>
-                {['hiking', 'mountaineering', 'backpacking'].map(t => (
-                  <View key={t} style={styles.tag}><Text style={styles.tagText}>{t}</Text></View>
+                {['hiking', 'mountaineering', 'backpacking'].map((t) => (
+                  <View key={t} style={styles.tag}>
+                    <Text style={styles.tagText}>{t}</Text>
+                  </View>
                 ))}
               </View>
               <Text style={styles.handle}>@jordanpeak</Text>
@@ -58,14 +61,12 @@ export default function DiscoverScreen() {
   );
 }
 
-const Stat = ({ label, value }: { label: string, value: string }) => (
+const Stat = ({ label, value }: { label: string; value: string }) => (
   <View style={styles.statBox}>
     <Text style={styles.statLabel}>{label}</Text>
     <Text style={styles.statValue}>{value}</Text>
   </View>
 );
-
-const GREEN = '#2D9B6F';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },

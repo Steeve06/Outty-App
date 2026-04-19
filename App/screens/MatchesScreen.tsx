@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../types';
 
-// Standard Green brand color used in Login and Dashboard
 const GREEN = '#2D9B6F';
 
 const MATCHES = [
@@ -42,14 +43,12 @@ const MATCHES = [
 ];
 
 export default function MatchesScreen() {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const renderItem = ({ item }: { item: typeof MATCHES[0] }) => (
     <TouchableOpacity
       style={styles.matchCard}
       onPress={() => {
-        // Updated to use standard navigation instead of router.push
-        // Ensure you have a 'ChatDetails' screen or similar in your App.tsx stack
         navigation.navigate('MessagingScreen', { name: item.name });
       }}
     >
@@ -68,7 +67,7 @@ export default function MatchesScreen() {
         <Text style={styles.locationText}>📍 {item.location}</Text>
 
         <View style={styles.tagRow}>
-          {item.tags.map(tag => (
+          {item.tags.map((tag) => (
             <View key={tag} style={styles.tag}>
               <Text style={styles.tagText}>{tag}</Text>
             </View>
@@ -89,7 +88,7 @@ export default function MatchesScreen() {
       <Text style={styles.title}>Your Matches</Text>
       <FlatList
         data={MATCHES}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
@@ -99,22 +98,9 @@ export default function MatchesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 60,
-    backgroundColor: '#f8f9fa'
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    color: '#1a1a1a'
-  },
-  list: {
-    paddingHorizontal: 20,
-    paddingBottom: 40
-  },
+  container: { flex: 1, paddingTop: 60, backgroundColor: '#f8f9fa' },
+  title: { fontSize: 24, fontWeight: 'bold', marginHorizontal: 20, marginBottom: 20, color: '#1a1a1a' },
+  list: { paddingHorizontal: 20, paddingBottom: 40 },
   matchCard: {
     flexDirection: 'row',
     padding: 15,
@@ -129,79 +115,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 5,
   },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40
-  },
-  info: {
-    flex: 1,
-    marginLeft: 15
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
-  nameText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#333'
-  },
-  badge: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: GREEN // Matches your brand green
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 'bold'
-  },
-  locationText: {
-    color: '#888',
-    fontSize: 13,
-    marginTop: 2
-  },
-  tagRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 5,
-    marginTop: 8
-  },
-  tag: {
-    backgroundColor: '#f0f0f0',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd'
-  },
-  tagText: {
-    fontSize: 10,
-    color: '#555',
-    fontWeight: '600'
-  },
-  msgRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 10
-  },
-  msgIcon: {
-    fontSize: 14,
-    marginRight: 5
-  },
-  lastMsg: {
-    fontSize: 14,
-    color: '#666',
-    flex: 1
-  },
-  timeText: {
-    fontSize: 11,
-    color: '#aaa',
-    marginTop: 4
-  }
+  avatar: { width: 80, height: 80, borderRadius: 40 },
+  info: { flex: 1, marginLeft: 15 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  nameText: { fontSize: 18, fontWeight: '700', color: '#333' },
+  badge: { width: 22, height: 22, borderRadius: 11, justifyContent: 'center', alignItems: 'center', backgroundColor: GREEN },
+  badgeText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
+  locationText: { color: '#888', fontSize: 13, marginTop: 2 },
+  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 8 },
+  tag: { backgroundColor: '#f0f0f0', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, borderWidth: 1, borderColor: '#ddd' },
+  tagText: { fontSize: 10, color: '#555', fontWeight: '600' },
+  msgRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
+  msgIcon: { fontSize: 14, marginRight: 5 },
+  lastMsg: { fontSize: 14, color: '#666', flex: 1 },
+  timeText: { fontSize: 11, color: '#aaa', marginTop: 4 }
 });

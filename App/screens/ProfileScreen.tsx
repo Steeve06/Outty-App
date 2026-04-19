@@ -2,25 +2,22 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { RootStackParamList } from '../../types';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-// Standard Brand Colors
 const GREEN = '#2D9B6F';
 const BACKGROUND = '#f8f9fa';
 const TEXT_MAIN = '#1a1a1a';
 const TEXT_LABEL = '#888';
 const ERROR_RED = '#e74c3c';
 
-/**
- * INTERNAL COMPONENT: ConnectedAccount
- * Renders the Instagram connection section previously imported from components.
- */
 const ConnectedAccountSection = ({ username, onDisconnect }: { username: string; onDisconnect: () => void }) => (
   <View style={styles.connectionCard}>
     <View style={styles.connectionHeader}>
       <View style={styles.iconCircle}>
         <Ionicons name="logo-instagram" size={24} color="#E1306C" />
       </View>
-      <View style={{ flex: 1, marginLeft: 12 }}>
+      <View style={styles.connectionInfo}>
         <Text style={styles.connectionTitle}>Instagram Connected</Text>
         <Text style={styles.connectionSubtitle}>@{username}</Text>
       </View>
@@ -32,10 +29,9 @@ const ConnectedAccountSection = ({ username, onDisconnect }: { username: string;
 );
 
 export default function ProfileScreen() {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleLogout = () => {
-    // Resets the stack so the user can't swipe back to the profile after logging out
     navigation.reset({
       index: 0,
       routes: [{ name: 'Login' }],
@@ -45,15 +41,14 @@ export default function ProfileScreen() {
   return (
     <ScrollView 
       style={styles.container}
-      contentContainerStyle={{ paddingBottom: 40 }}
+      contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Profile</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.editBtn}>
-            <Ionicons name="create-outline" size={16} color={TEXT_MAIN} style={{ marginRight: 4 }} />
+            <Ionicons name="create-outline" size={16} color={TEXT_MAIN} style={styles.editIcon} />
             <Text style={styles.editBtnText}>Edit Profile</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.settingsBtn}>
@@ -62,7 +57,6 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      {/* Main Info Card */}
       <View style={styles.card}>
         <View style={styles.avatarContainer}>
           <Image 
@@ -99,7 +93,6 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Skill & Attitude Row */}
         <View style={styles.row}>
           <View style={styles.halfWidth}>
             <Text style={styles.label}>Skill Level</Text>
@@ -112,8 +105,7 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      {/* Integrated Connected Account Section */}
-      <View style={{ marginTop: 20, marginHorizontal: 20 }}>
+      <View style={styles.connectionWrapper}>
         <Text style={styles.sectionLabel}>Connected Accounts</Text>
         <ConnectedAccountSection 
           username="alexrivers" 
@@ -121,19 +113,15 @@ export default function ProfileScreen() {
         />
       </View>
 
-      {/* Action List */}
       <View style={styles.actionContainer}>
-        <TouchableOpacity 
-          style={styles.actionRow}
-          onPress={handleLogout}
-        >
+        <TouchableOpacity style={styles.actionRow} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={20} color={TEXT_MAIN} />
           <Text style={styles.actionText}>Log Out</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.actionRow, { marginTop: 10 }]}>
+        <TouchableOpacity style={[styles.actionRow, styles.deleteAction]}>
           <Ionicons name="trash-outline" size={20} color={ERROR_RED} />
-          <Text style={[styles.actionText, { color: ERROR_RED }]}>Delete Profile</Text>
+          <Text style={[styles.actionText, styles.deleteText]}>Delete Profile</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -142,40 +130,15 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BACKGROUND },
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    paddingHorizontal: 20,
-    paddingTop: 60, 
-    marginBottom: 20 
-  },
+  scrollContent: { paddingBottom: 40 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 60, marginBottom: 20 },
   headerActions: { flexDirection: 'row', alignItems: 'center' },
   settingsBtn: { marginLeft: 15 },
   title: { fontSize: 28, fontWeight: 'bold', color: TEXT_MAIN },
-  editBtn: { 
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1, 
-    borderColor: '#ddd',
-    paddingHorizontal: 12, 
-    paddingVertical: 6, 
-    borderRadius: 8,
-    backgroundColor: '#fff'
-  },
+  editBtn: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#ddd', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: '#fff' },
+  editIcon: { marginRight: 4 },
   editBtnText: { fontSize: 14, fontWeight: '600', color: TEXT_MAIN },
-  card: { 
-    marginHorizontal: 20, 
-    padding: 20, 
-    borderRadius: 16, 
-    borderWidth: 1,
-    borderColor: '#eee',
-    backgroundColor: '#fff',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-  },
+  card: { marginHorizontal: 20, padding: 20, borderRadius: 16, borderWidth: 1, borderColor: '#eee', backgroundColor: '#fff', elevation: 3, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8 },
   avatarContainer: { alignItems: 'center', marginBottom: 20 },
   profileImage: { width: 120, height: 120, borderRadius: 60, backgroundColor: '#eee' },
   infoSection: { marginBottom: 15 },
@@ -188,31 +151,18 @@ const styles = StyleSheet.create({
   tagText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
   row: { flexDirection: 'row', marginTop: 10 },
   halfWidth: { flex: 1 },
-  
-  // Connection Styles
-  connectionCard: {
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#eee'
-  },
+  connectionWrapper: { marginTop: 20, marginHorizontal: 20 },
+  connectionCard: { padding: 16, borderRadius: 12, backgroundColor: '#fff', borderWidth: 1, borderColor: '#eee' },
   connectionHeader: { flexDirection: 'row', alignItems: 'center' },
   iconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#FDF0F5', justifyContent: 'center', alignItems: 'center' },
+  connectionInfo: { flex: 1, marginLeft: 12 },
   connectionTitle: { fontSize: 15, fontWeight: '600', color: TEXT_MAIN },
   connectionSubtitle: { fontSize: 13, color: TEXT_LABEL },
   disconnectBtn: { paddingVertical: 6, paddingHorizontal: 10 },
   disconnectText: { color: ERROR_RED, fontSize: 13, fontWeight: '600' },
-
   actionContainer: { marginTop: 30, marginHorizontal: 20 },
-  actionRow: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    padding: 16, 
-    borderRadius: 12, 
-    borderWidth: 1,
-    borderColor: '#eee',
-    backgroundColor: '#fff'
-  },
-  actionText: { marginLeft: 10, fontSize: 16, fontWeight: '500', color: TEXT_MAIN }
+  actionRow: { flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#eee', backgroundColor: '#fff' },
+  deleteAction: { marginTop: 10 },
+  actionText: { marginLeft: 10, fontSize: 16, fontWeight: '500', color: TEXT_MAIN },
+  deleteText: { color: ERROR_RED }
 });
