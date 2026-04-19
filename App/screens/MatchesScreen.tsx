@@ -8,7 +8,7 @@ const GREEN = '#2D9B6F';
 const MATCHES = [
   {
     id: '1',
-    name: 'Jordan Peak',
+    name: 'John Doe',
     age: 30,
     location: 'Boulder, CO',
     tags: ['hiking', 'mountaineering', 'backpacking'],
@@ -50,7 +50,7 @@ export default function MatchesScreen() {
       onPress={() => {
         // Updated to use standard navigation instead of router.push
         // Ensure you have a 'ChatDetails' screen or similar in your App.tsx stack
-        navigation.navigate('ChatDetails', { name: item.name });
+        navigation.navigate('MessagingScreen', { name: item.name });
       }}
     >
       <Image source={{ uri: item.avatar }} style={styles.avatar} />
