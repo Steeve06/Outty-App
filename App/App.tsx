@@ -10,6 +10,7 @@ import SignupScreen from './screens/SignupScreen';
 import DiscoverScreen from './screens/DiscoverScreen';
 import MatchesScreen from './screens/MatchesScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import MessagingScreen from './screens/MessagingScreen';
 
 // 1. Define the parameters for your Tab Navigator
 export type TabParamList = {
@@ -23,6 +24,7 @@ export type RootStackParamList = {
   Login: undefined;
   Signup: undefined;
   MainTabs: undefined; // This holds the bottom tabs
+  MessagingScreen : undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -64,6 +66,7 @@ export default function App() {
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
           <Stack.Screen name="MainTabs" component={TabNavigator} />
+          <Stack.Screen name="MessagingScreen" component={MessagingScreen}/>
         </Stack.Navigator>
       </NavigationContainer>
     </GestureHandlerRootView>
