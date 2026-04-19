@@ -5,12 +5,12 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 
-import LoginScreen from './screens/LoginScreen'; 
-import SignupScreen from './screens/SignupScreen';
-import DiscoverScreen from './screens/DiscoverScreen';
-import MatchesScreen from './screens/MatchesScreen';
-import ProfileScreen from './screens/ProfileScreen';
-import MessagingScreen from './screens/MessagingScreen';
+import LoginScreen from './client/src/screens/LoginScreen';
+import SignupScreen from './client/src/screens/SignupScreen';
+import DiscoverScreen from './client/src/screens/DiscoverScreen';
+import MatchesScreen from './client/src/screens/MatchesScreen';
+import ProfileScreen from './client/src/screens/ProfileScreen';
+import MessagingScreen from './client/src/screens/MessagingScreen';
 
 // 1. Define the parameters for your Tab Navigator
 export type TabParamList = {
