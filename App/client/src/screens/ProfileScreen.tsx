@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../types';
@@ -29,15 +29,59 @@ const ConnectedAccountSection = ({ username, onDisconnect }: { username: string;
 );
 
 export default function ProfileScreen() {
+  console.log('ProfileScreen rendered');
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
+  // Hardcoded uid for now - will be replaced with auth context later
+  const uid = 'user123';
+
+  // State to store profile data from the backend
+  const [profile, setProfile] = useState<any>(null);
+
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    fetch(`http://localhost:3000/api/profile/${uid}`)
+        .then(res => res.json())
+        .then(data => {
+          console.log('Profile data:', data);
+          setProfile(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.log(err)
+        });
+    }, []
+  );
   const handleLogout = () => {
     navigation.reset({
       index: 0,
       routes: [{ name: 'Login' }],
     });
   };
-
+  if (loading) {
+      return<Text>Loading...</Text>;
+    }
+  /*
+  const handleDelete = () => {
+    Alert.alert(
+      'Delete Profile',
+      'Are you sure? ',
+      [
+        {text: 'Cancel'},
+        {text: 'Delete', onPress: () => {
+          fetch(`http://localhost:3000/api/profile/${uid}`)
+          method: DELETE;
+          .then(res => res.json())
+          .then(data => {
+            delete(profile.data)
+          })
+        }}
+      ]
+    )
+    
+  }
+    */
   return (
     <ScrollView 
       style={styles.container}
@@ -67,25 +111,25 @@ export default function ProfileScreen() {
         
         <View style={styles.infoSection}>
           <Text style={styles.label}>Name</Text>
-          <Text style={styles.value}>Alex Rivers, 28</Text>
+          <Text style={styles.value}>{profile?.name}, {profile?.age}</Text>
         </View>
 
         <View style={styles.infoSection}>
           <Text style={styles.label}>Location</Text>
-          <Text style={styles.value}>Denver, CO</Text>
+          <Text style={styles.value}>{profile?.location}</Text>
         </View>
 
         <View style={styles.infoSection}>
           <Text style={styles.label}>Bio</Text>
           <Text style={styles.value}>
-            Weekend warrior seeking adventure buddies for mountain trails and good vibes.
+            {profile?.bio}
           </Text>
         </View>
 
         <View style={styles.tagSection}>
           <Text style={styles.label}>Adventures</Text>
           <View style={styles.tagContainer}>
-            {['hiking', 'backpacking', 'camping'].map((tag) => (
+            {(profile?.interests ??[]).map((tag: string) => (
               <View key={tag} style={styles.tag}>
                 <Text style={styles.tagText}>{tag}</Text>
               </View>
@@ -96,11 +140,11 @@ export default function ProfileScreen() {
         <View style={styles.row}>
           <View style={styles.halfWidth}>
             <Text style={styles.label}>Skill Level</Text>
-            <Text style={styles.value}>Intermediate</Text>
+            <Text style={styles.value}>{profile?.skillLevel}</Text>
           </View>
           <View style={styles.halfWidth}>
             <Text style={styles.label}>Attitude</Text>
-            <Text style={styles.value}>Moderate</Text>
+            <Text style={styles.value}>{profile?.attitude}</Text>
           </View>
         </View>
       </View>
@@ -108,7 +152,7 @@ export default function ProfileScreen() {
       <View style={styles.connectionWrapper}>
         <Text style={styles.sectionLabel}>Connected Accounts</Text>
         <ConnectedAccountSection 
-          username="alexrivers" 
+          username={profile?.instagramHandle ?? 'Not connected'} 
           onDisconnect={() => console.log('Disconnecting...')} 
         />
       </View>
