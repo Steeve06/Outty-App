@@ -34,9 +34,8 @@ export default function ProfileScreen() {
 
   // Hardcoded uid for now - will be replaced with auth context later
   const uid = 'user123';
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   // State to store profile data from the backend
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [profile, setProfile] = useState<any>(null);
 
   const [loading, setLoading] = useState<boolean>(true);
