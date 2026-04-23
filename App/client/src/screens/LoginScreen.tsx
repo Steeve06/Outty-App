@@ -15,7 +15,7 @@ import Svg, { Path } from 'react-native-svg';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
-//@ts-ignore
+// @ts-expect-error
 import { auth } from '../../firebase';
 import { RootStackParamList } from '../../../../types';
 

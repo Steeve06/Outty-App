@@ -19,7 +19,7 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 
-// @ts-ignore
+// @ts-expect-error
 import { db } from '../../firebase';
 import { RootStackParamList } from '../../../../types';
 
