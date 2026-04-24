@@ -15,7 +15,7 @@ import Svg, { Path } from 'react-native-svg';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
-// @ts-expect-error
+// @ts-expect-error - firebase module lacks type declarations
 import { auth } from '../../firebase';
 import { RootStackParamList } from '../../../../types';
 
