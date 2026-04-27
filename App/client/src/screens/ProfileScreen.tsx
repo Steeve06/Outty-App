@@ -1,10 +1,10 @@
-import React, {useState, useEffect} from 'react';
-import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity,  TextInput, Modal } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity, TextInput, Modal, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../../../types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AuthProvider, useAuth } from '../../src/context/AuthContext';
+import { useAuth } from '../../src/context/AuthContext';
 
 const GREEN = '#2D9B6F';
 const BACKGROUND = '#f8f9fa';
@@ -31,8 +31,8 @@ const ConnectedAccountSection = ({ username, onDisconnect }: { username: string;
 
 export default function ProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  
-  const { firebaseUser, userProfile } = useAuth();
+
+  const { firebaseUser, userProfile, logout } = useAuth();
 
   // State to store profile data from the backend
   //eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,26 +48,54 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     fetch(`http://localhost:3000/api/profile/${userProfile?.uid}`)
-        .then(res => res.json())
-        .then(data => {
-          console.log('Profile data:', data);
-          setProfile(data);
-          setLoading(false);
-        })
-        .catch(err => {
-          console.log(err)
-        });
-    }, []
+      .then(res => res.json())
+      .then(data => {
+        console.log('Profile data:', data);
+        setProfile(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.log(err)
+      });
+  }, []
   );
-  const handleLogout = () => {
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Login' }],
-    });
+
+  // const handleLogout = () => {
+  //   Alert.alert(
+  //     'Log Out',
+  //     'Are you sure you want to log out?',
+  //     [
+  //       { text: 'Cancel', style: 'cancel' },
+  //       {
+  //         text: 'Log Out',
+  //         style: 'destructive',
+  //         onPress: async () => {
+  //           try {
+  //             console.log('Logout pressed');
+  //             console.log('Current user before logout:', firebaseUser?.uid);
+  //             await logout();
+  //             console.log('Logout finished');
+  //           } catch (error) {
+  //             console.log('Logout error:', error);
+  //           }
+  //         },
+  //       },
+  //     ]
+  //   );
+  // };
+
+  const handleLogout = async () => {
+    alert('handleLogout fired');
+    try {
+      await logout();
+    } catch (error) {
+      alert('logout failed');
+      console.log(error);
+    }
   };
 
   if (loading) {
-      return<Text>Loading...</Text>;
+    return <Text>Loading...</Text>;
   }
 
   const handleEdit = () => {
@@ -82,43 +110,43 @@ export default function ProfileScreen() {
     fetch(`http://localhost:3000/api/profile/${userProfile?.uid}`, {
       method: 'PATCH',
       headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ...(editName && { name: editName }),
-          ...(editBio && { bio: editBio }),
-          ...(editLocation && { location: editLocation }),
-          ...(editInterests && { interests: editInterests.split(',').map(i => i.trim()) })
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ...(editName && { name: editName }),
+        ...(editBio && { bio: editBio }),
+        ...(editLocation && { location: editLocation }),
+        ...(editInterests && { interests: editInterests.split(',').map(i => i.trim()) })
       })
     })
-    .then(() => {
-      return fetch(`http://localhost:3000/api/profile/${userProfile?.uid}`)
-        .then(res => res.json())
-        .then(data => {
-          console.log('Updated Profile', data)
-          setProfile(data);
-          console.log('Profile updated')
-          setModalVisible(false)
-        })
-    })
-    .catch(err => console.log(err));
+      .then(() => {
+        return fetch(`http://localhost:3000/api/profile/${userProfile?.uid}`)
+          .then(res => res.json())
+          .then(data => {
+            console.log('Updated Profile', data)
+            setProfile(data);
+            console.log('Profile updated')
+            setModalVisible(false)
+          })
+      })
+      .catch(err => console.log(err));
   }
   const handleDelete = () => {
     if (window.confirm('Are you sure you want to delete your profile?')) {
-        fetch(`http://localhost:3000/api/profile/${userProfile?.uid}`, {
-            method: 'DELETE'
-        })
+      fetch(`http://localhost:3000/api/profile/${userProfile?.uid}`, {
+        method: 'DELETE'
+      })
         .then(res => res.json())
         .then(() => {
-            setProfile(null);
-            navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+          setProfile(null);
+          navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
         })
         .catch(err => console.log(err));
     }
   };
 
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.container}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
@@ -126,8 +154,8 @@ export default function ProfileScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Profile</Text>
         <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.editBtn} onPress = {handleEdit}>
-            <Ionicons name="create-outline" size={16} color={TEXT_MAIN} style={styles.editIcon}/>
+          <TouchableOpacity style={styles.editBtn} onPress={handleEdit}>
+            <Ionicons name="create-outline" size={16} color={TEXT_MAIN} style={styles.editIcon} />
             <Text style={styles.editBtnText}>Edit Profile</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.settingsBtn}>
@@ -138,12 +166,12 @@ export default function ProfileScreen() {
 
       <View style={styles.card}>
         <View style={styles.avatarContainer}>
-          <Image 
-            source={{ uri: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=300&auto=format&fit=crop' }} 
-            style={styles.profileImage} 
+          <Image
+            source={{ uri: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=300&auto=format&fit=crop' }}
+            style={styles.profileImage}
           />
         </View>
-        
+
         <View style={styles.infoSection}>
           <Text style={styles.label}>Name</Text>
           <Text style={styles.value}>{profile?.name}</Text>
@@ -164,7 +192,7 @@ export default function ProfileScreen() {
         <View style={styles.tagSection}>
           <Text style={styles.label}>Adventures</Text>
           <View style={styles.tagContainer}>
-            {(profile?.interests ??[]).map((tag:string) => (
+            {(profile?.interests ?? []).map((tag: string) => (
               <View key={tag} style={styles.tag}>
                 <Text style={styles.tagText}>{tag}</Text>
               </View>
@@ -186,14 +214,21 @@ export default function ProfileScreen() {
 
       <View style={styles.connectionWrapper}>
         <Text style={styles.sectionLabel}>Connected Accounts</Text>
-        <ConnectedAccountSection 
-          username="alexrivers" 
-          onDisconnect={() => console.log('Disconnecting...')} 
+        <ConnectedAccountSection
+          username="alexrivers"
+          onDisconnect={() => console.log('Disconnecting...')}
         />
       </View>
 
       <View style={styles.actionContainer}>
-        <TouchableOpacity style={styles.actionRow} onPress={handleLogout}>
+        {/* <TouchableOpacity style={styles.actionRow} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={20} color={TEXT_MAIN} />
+          <Text style={styles.actionText}>Log Out</Text>
+        </TouchableOpacity> */}
+        <TouchableOpacity
+          style={styles.actionRow}
+          onPress={(handleLogout)}
+        >
           <Ionicons name="log-out-outline" size={20} color={TEXT_MAIN} />
           <Text style={styles.actionText}>Log Out</Text>
         </TouchableOpacity>
@@ -205,29 +240,29 @@ export default function ProfileScreen() {
       </View>
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
-            <View style={styles.modalCard}>
-              <Text style={styles.modalTitle}>Edit Profile</Text>
-              
-              <Text style={styles.label}>Name</Text>
-              <TextInput style={styles.input} value={editName} onChangeText={setEditName} />
-              
-              <Text style={styles.label}>Bio</Text>
-              <TextInput style={styles.input} value={editBio} onChangeText={setEditBio} multiline />
-              
-              <Text style={styles.label}>Location</Text>
-              <TextInput style={styles.input} value={editLocation} onChangeText={setEditLocation} />
-              
-              <Text style={styles.label}>Interests (comma separated)</Text>
-              <TextInput style={styles.input} value={editInterests} onChangeText={setEditInterests} />
-              
-              <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-                  <Text style={styles.saveBtnText}>Save</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
-                  <Text style={styles.cancelBtnText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Edit Profile</Text>
+
+            <Text style={styles.label}>Name</Text>
+            <TextInput style={styles.input} value={editName} onChangeText={setEditName} />
+
+            <Text style={styles.label}>Bio</Text>
+            <TextInput style={styles.input} value={editBio} onChangeText={setEditBio} multiline />
+
+            <Text style={styles.label}>Location</Text>
+            <TextInput style={styles.input} value={editLocation} onChangeText={setEditLocation} />
+
+            <Text style={styles.label}>Interests (comma separated)</Text>
+            <TextInput style={styles.input} value={editInterests} onChangeText={setEditInterests} />
+
+            <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+              <Text style={styles.saveBtnText}>Save</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
+              <Text style={styles.cancelBtnText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     </ScrollView>
