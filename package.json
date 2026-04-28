@@ -8,7 +8,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "eslint .",
-    "test": "vitest App/server/tests --run",
+    "test":"jest App/server/tests",
     "build": "echo 'No build step required for backend' && exit 0"
   },
   "dependencies": {
@@ -36,9 +36,10 @@
     "eslint": "^8.57.1",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^17.5.0",
+    "jest": "^30.3.0",
+    "supertest": "^7.2.2",
     "typescript": "~5.9.2",
-    "typescript-eslint": "^8.58.2",
-    "vitest": "^4.1.5"
+    "typescript-eslint": "^8.58.2"
   },
   "private": true
 }

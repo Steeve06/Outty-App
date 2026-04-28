@@ -1,104 +1,123 @@
+// 1. Mocking the service module
 jest.mock('../src/services/profileServices');
+
 const supertest = require('supertest');
-const app = require('../index');
+const app = require('../index'); 
 const request = supertest(app);
-const { createProfile, getProfile, updateProfile, deleteProfile } = require('../src/services/profileServices');
+
+// 2. Destructure the mocked functions
+const { 
+    createProfile, 
+    getProfile, 
+    updateProfile, 
+    deleteProfile 
+} = require('../src/services/profileServices');
 
 describe('POST /api/profile/:uid', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-    })
+    });
+
     it('should return a 201 after successful profile creation', async () => {
-        createProfile.mockResolvedValue({uid: '231'});
+        createProfile.mockResolvedValue({ uid: '231' });
         const res = await request
-        .post('/api/profile/231')
-        .send({uid: '231'});
+            .post('/api/profile/231')
+            .send({ uid: '231' });
         expect(res.status).toBe(201);
         expect(res.body.uid).toBeDefined();
-    })
+    });
+
     it('should return a 400 if request body is empty', async () => {
+        // For Jest, if you are mocking a return of an Error object in a resolve:
         updateProfile.mockResolvedValue(new Error('Request is empty'));
         const res = await request
-        .post('/api/profile/231')
-        .send({});
+            .post('/api/profile/231')
+            .send({});
         expect(res.status).toBe(400);
-    })
+    });
+
     it('should return a 409 error if duplicate profile is created', async () => {
         createProfile.mockRejectedValue(new Error('Profile already exists'));
         const res = await request
-        .post('/api/profile/231')
-        .send({uid: '231'});
+            .post('/api/profile/231')
+            .send({ uid: '231' });
         expect(res.status).toBe(409);
-    })
+    });
 });
 
 describe('GET /api/profile/:uid', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-    })
+    });
+
     it('should return a 200 after that profile exists', async () => {
-        getProfile.mockResolvedValue({uid: '231'});
+        getProfile.mockResolvedValue({ uid: '231' });
         const res = await request
-        .get('/api/profile/231')
-        .send({uid: '231'});
+            .get('/api/profile/231');
         expect(res.status).toBe(200);
-        //expect(res.body.uid).toBeDefined();
-    })
-    it('should return a 400 error if profile does not exist', async () => {
+    });
+
+    it('should return a 404 error if profile does not exist', async () => {
         getProfile.mockRejectedValue(new Error('Profile does not exist'));
         const res = await request
-        .get('/api/profile/20')
-        .send({uid: '20'});
+            .get('/api/profile/20');
         expect(res.status).toBe(404);
-    })
+    });
 });
 
 describe('PATCH /api/profile/:uid', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-    })
+    });
+
     it('should return a 200 after that profile has been successfully updated', async () => {
-        updateProfile.mockResolvedValue({uid: '231'});
+        updateProfile.mockResolvedValue({ uid: '231' });
         const res = await request
-        .patch('/api/profile/231')
-        .send({uid: '231'});
+            .patch('/api/profile/231')
+            .send({ uid: '231' });
         expect(res.status).toBe(200);
         expect(res.body.uid).toBeDefined();
-    })
+    });
+
     it('should return a 400 after that profile body is empty or bad request', async () => {
         updateProfile.mockResolvedValue(new Error('Request is empty'));
         const res = await request
-        .patch('/api/profile/231')
-        .send({});
+            .patch('/api/profile/231')
+            .send({});
         expect(res.status).toBe(400);
-    })
+    });
+
     it('should return a 404 error if profile does not exist', async () => {
         updateProfile.mockRejectedValue(new Error('Profile does not exist'));
         const res = await request
-        .patch('/api/profile/20')
-        .send({uid: '20'});
+            .patch('/api/profile/20')
+            .send({ uid: '20' });
         expect(res.status).toBe(404);
-    })
+    });
 });
 
 describe('DELETE /api/profile/:uid', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-    })
+    });
+
     it('should return a 200 after profile has been successfully deleted', async () => {
-        deleteProfile.mockResolvedValue({uid: '231'});
+        const mockDeletedProfile = { uid: '231' };
+        deleteProfile.mockResolvedValue(mockDeletedProfile);
+
         const res = await request
-        .delete('/api/profile/231')
-        .send({uid: '231'});
+            .delete('/api/profile/231');
+
         expect(res.status).toBe(200);
-        expect(res.body.uid).toBeDefined();
-    })
+        expect(res.body.uid).toBe('231');
+    });
     
     it('should return a 404 error if profile does not exist', async () => {
         deleteProfile.mockRejectedValue(new Error('Profile does not exist'));
+        
         const res = await request
-        .delete('/api/profile/20')
-        .send({uid: '20'});
+            .delete('/api/profile/20');
+            
         expect(res.status).toBe(404);
-    })
+    });
 });
