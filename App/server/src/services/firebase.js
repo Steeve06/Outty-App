@@ -7,6 +7,6 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
-const bucket = admin.storage.bucket();
+const bucket = admin.storage().bucket('outty-dev-3a0b1.appspot.com');
 
 module.exports = { admin, db, bucket}; 
