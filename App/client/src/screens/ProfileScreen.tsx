@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity, TextInput, Modal, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity, TextInput, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../../../types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useAuth } from '../../src/context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 const GREEN = '#2D9B6F';
 const BACKGROUND = '#f8f9fa';

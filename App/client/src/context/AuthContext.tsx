@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { User, onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 
 // @ts-expect-error - firebase module lacks type declarations
 import { auth, db } from '../firebase';
@@ -24,7 +24,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 async function ensureUserDocument(user: User): Promise<AppUserProfile> {
-    const userRef = doc(db, 'users', user.uid);
+    const userRef = doc(db, 'profiles', user.uid);
     const snap = await getDoc(userRef);
 
     if (!snap.exists()) {
@@ -36,7 +36,11 @@ async function ensureUserDocument(user: User): Promise<AppUserProfile> {
             role: 'user',
         };
 
-        await setDoc(userRef, newProfile);
+        await fetch(`http://localhost:3000/api/profile/${user.uid}`, {
+            method: 'POST',
+            headers: {'Content-Type' : 'application/json'},
+            body: JSON.stringify(newProfile)
+        });
         return newProfile;
     }
 
@@ -60,7 +64,11 @@ async function ensureUserDocument(user: User): Promise<AppUserProfile> {
         mergedProfile.provider !== data.provider ||
         mergedProfile.role !== data.role
     ) {
-        await setDoc(userRef, mergedProfile, { merge: true });
+        await fetch(`http://localhost:3000/api/profile/${user.uid}`, {
+            method: 'PATCH',
+            headers: {'Content-Type' : 'application/json'},
+            body: JSON.stringify(mergedProfile)
+        });
     }
 
     return mergedProfile;
