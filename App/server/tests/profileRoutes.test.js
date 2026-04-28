@@ -1,6 +1,14 @@
 // 1. Mocking the service module
 jest.mock('../src/services/profileServices');
 
+jest.mock('firebase-admin', () => ({
+  initializeApp: jest.fn(),
+  credential: {
+    cert: jest.fn()
+  },
+  firestore: jest.fn()
+}));
+
 const supertest = require('supertest');
 const app = require('../index'); 
 const request = supertest(app);
