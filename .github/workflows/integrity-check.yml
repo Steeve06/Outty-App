@@ -1,14 +1,15 @@
-name: Outty-App Linting Check
+name: Outty-App CI Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
-  lint:
+  build-and-test:
     runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -16,19 +17,21 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
           cache: 'npm'
+          # Using root lockfile as seen in your file explorer
+          cache-dependency-path: package-lock.json
 
-      # Frontend Linting
-      - name: Install & Lint Frontend
-        working-directory: ./App
-        run: |
-          npm install
-          npm run lint # Ensure you have a "lint" script in App/package.json
+      - name: Install Dependencies
+        run: npm install
 
-      # Backend Linting
-      - name: Install & Lint Backend
-        working-directory: ./App/server
-        run: |
-          npm install
-          npm run lint # Ensure you have a "lint" script in server/package.json
+      - name: Rubric Check 1 - Linting
+        # This will run the lint script defined in your root package.json
+        run: npm run lint
+
+      - name: Rubric Check 2 - Unit Tests
+        # This will trigger tests, including those in App/server/tests/
+        run: npm run test
+
+      - name: Rubric Check 3 - Production Build
+        run: npm run build

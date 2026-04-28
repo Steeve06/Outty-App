@@ -9,18 +9,21 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
-  Alert
+  Alert,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 // @ts-expect-error - firebase module lacks type declarations
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { RootStackParamList } from '../../../../types';
 
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
+GoogleSignin.configure({
+  webClientId: '349245259412-14cvrtnqbk2nb0fnivqp6qm64l45e4l9.apps.googleusercontent.com',
+});
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Login'>;
@@ -70,35 +73,55 @@ export default function LoginScreen({ navigation }: Props) {
   }
 
   async function handleLogin() {
-    const eErr = validateEmail(email);
-    const pErr = validatePassword(password);
-    setEmailError(eErr);
-    setPasswordError(pErr);
-    setLoginError('');
-    if (eErr || pErr) return;
-    setLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, email.trim(), password);
-      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
-    } catch (err: unknown) {
-      const code = (err as { code?: string }).code ?? '';
-      if (
-        code === 'auth/user-not-found' ||
-        code === 'auth/wrong-password' ||
-        code === 'auth/invalid-credential'
-      ) {
-        setLoginError('Incorrect email or password.');
-      } else if (code === 'auth/too-many-requests') {
-        setLoginError('Too many attempts. Please try again later.');
-      } else {
-        setLoginError('Something went wrong. Please try again.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
+  const eErr = validateEmail(email);
+  const pErr = validatePassword(password);
+  setEmailError(eErr);
+  setPasswordError(pErr);
+  setLoginError('');
+  if (eErr || pErr) return;
 
-  GoogleSignin.configure({ webClientId: '349245259412-14cvrtnqbk2nb0fnivqp6qm64l45e4l9.apps.googleusercontent.com' });
+  setLoading(true);
+  try {
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email.trim().toLowerCase(),
+      password
+    );
+
+    const user = userCredential.user;
+
+    const userRef = doc(db, 'profiles', user.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      await setDoc(userRef, {
+        uid: user.uid,
+        name: user.displayName?.trim() || '',
+        email: user.email?.trim().toLowerCase() || email.trim().toLowerCase(),
+        provider: 'email',
+        role: 'user',
+      });
+    }
+
+    // navigation to main app is handled by AuthFlow (onAuthStateChanged),
+    // so you don't need navigation.reset here.
+  } catch (err: unknown) {
+    const code = (err as { code?: string }).code ?? '';
+    if (
+      code === 'auth/user-not-found' ||
+      code === 'auth/wrong-password' ||
+      code === 'auth/invalid-credential'
+    ) {
+      setLoginError('Incorrect email or password.');
+    } else if (code === 'auth/too-many-requests') {
+      setLoginError('Too many attempts. Please try again later.');
+    } else {
+      setLoginError('Something went wrong. Please try again.');
+    }
+  } finally {
+    setLoading(false);
+  }
+}
 
   async function handleGooglePress() {
     try {
@@ -111,14 +134,13 @@ export default function LoginScreen({ navigation }: Props) {
       }
       const credential = GoogleAuthProvider.credential(idToken);
       await signInWithCredential(auth, credential);
-      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch {
       Alert.alert('Error', 'Google Sign-In failed. Please try again.');
     }
   }
 
   function handleSignupPress() {
-    navigation.reset({ index: 0, routes: [{ name: 'Signup' }] });
+    navigation.navigate('Signup');
   }
 
   return (
@@ -166,11 +188,7 @@ export default function LoginScreen({ navigation }: Props) {
             activeOpacity={0.85}
             disabled={loading}
           >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.loginBtnText}>Log In</Text>
-            )}
+            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.loginBtnText}>Log In</Text>}
           </TouchableOpacity>
 
           <View style={styles.dividerRow}>
@@ -179,11 +197,7 @@ export default function LoginScreen({ navigation }: Props) {
             <View style={styles.dividerLine} />
           </View>
 
-          <TouchableOpacity
-            style={styles.socialBtn}
-            onPress={handleGooglePress}
-            activeOpacity={0.85}
-          >
+          <TouchableOpacity style={styles.socialBtn} onPress={handleGooglePress} activeOpacity={0.85}>
             <GoogleIcon />
             <Text style={styles.socialBtnText}>Sign in with Google</Text>
           </TouchableOpacity>

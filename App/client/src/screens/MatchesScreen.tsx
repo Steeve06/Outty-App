@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from 'react
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../../types';
+import { useAuth } from '../../src/context/AuthContext';
 
 const GREEN = '#2D9B6F';
 
@@ -43,6 +44,12 @@ const MATCHES = [
 ];
 
 export default function MatchesScreen() {
+
+  const { firebaseUser, userProfile } = useAuth();
+
+  console.log(firebaseUser);
+  console.log(userProfile);
+
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const renderItem = ({ item }: { item: typeof MATCHES[0] }) => (
