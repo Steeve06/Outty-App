@@ -24,7 +24,11 @@ jobs:
 
       - name: Install Dependencies
         run: npm install
-
+        
+      - name: Install Server Dependencies
+        run: npm install
+        working-directory: App/server
+        
       - name: Rubric Check 1 - Linting
         # This will run the lint script defined in your root package.json
         run: npm run lint
