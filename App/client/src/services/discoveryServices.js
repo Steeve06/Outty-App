@@ -6,6 +6,10 @@ async function matchUsers(fromUid, toUid) {
     const doc = await docRef.get();
 }
 
+function buildPairKey(uid1, uid2) {
+  return [uid1, uid2].sort().join('_');
+}
+
 // (0) Get all target UIDs the current user has already interacted with
 async function fetchIdsOfInteractedWithUsers(currentUserUid) {
     try {
@@ -17,9 +21,8 @@ async function fetchIdsOfInteractedWithUsers(currentUserUid) {
         const interactedUids = snapshot.docs.map(doc => doc.data().toUid);
 
         return interactedUids;
-    } 
-    catch (error) 
-    {
+    }
+    catch (error) {
         throw error;
     }
 }
@@ -35,9 +38,8 @@ async function removeAlreadyInteractedProfiles(currentUserUid, profiles) {
         );
 
         return filteredProfiles;
-    } 
-    catch (error) 
-    {
+    }
+    catch (error) {
         console.error('Error filtering interacted profiles:', error.message);
         throw error;
     }
@@ -58,30 +60,30 @@ export async function loadInitialQueue(currentUserUid) {
         const cleanedProfiles = await removeAlreadyInteractedProfiles(currentUserUid, profiles);
 
         return cleanedProfiles;
-    } 
-    catch (error) 
-    {
+    }
+    catch (error) {
         console.error('Error message:', error.message);
         throw error;
     }
 }
 
-async function saveInteraction(currentUserUid, targetMatchUid, typeOfInteraction) {
+export async function saveInteraction(currentUserUid, targetMatchUid, typeOfInteraction) {
     try {
-        console.log('interaction saved');
-
         const interactionDocId = `${currentUserUid}_${targetMatchUid}`;
-
         const interactionRef = doc(db, 'interactions', interactionDocId);
 
         await setDoc(interactionRef, {
             fromUid: currentUserUid,
             toUid: targetMatchUid,
-            type: typeOfInteraction, // 'like' | 'pass' | 'block'
+            type: typeOfInteraction,
             createdAt: serverTimestamp(),
         });
 
-        return interactionDocId;
+        if (typeOfInteraction !== 'like') {
+            return { matched: false };
+        }
+
+        return await checkMatch(currentUserUid, targetMatchUid);
     } catch (error) {
         console.error('Error saving interaction:', error.message);
         throw error;
