@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity, TextInput, Modal } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity, TextInput, Modal, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../../../types';
@@ -47,7 +47,8 @@ export default function ProfileScreen() {
   const [editInterests, setEditInterests] = useState('');
 
   useEffect(() => {
-    fetch(`http://localhost:3000/api/profile/${userProfile?.uid}`)
+    if (!userProfile?.uid) return;
+    fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/profile/${userProfile?.uid}`)
       .then(res => res.json())
       .then(data => {
         console.log('Profile data:', data);
@@ -57,8 +58,7 @@ export default function ProfileScreen() {
       .catch(err => {
         console.log(err)
       });
-  }, []
-  );
+  }, [userProfile?.uid]);
 
   const handleLogout = async () => {
     alert('handleLogout fired');
@@ -83,7 +83,7 @@ export default function ProfileScreen() {
   };
 
   const handleSave = () => {
-    fetch(`http://localhost:3000/api/profile/${userProfile?.uid}`, {
+    fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/profile/${userProfile?.uid}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -96,7 +96,7 @@ export default function ProfileScreen() {
       })
     })
       .then(() => {
-        return fetch(`http://localhost:3000/api/profile/${userProfile?.uid}`)
+        return fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/profile/${userProfile?.uid}`)
           .then(res => res.json())
           .then(data => {
             console.log('Updated Profile', data)
@@ -107,18 +107,24 @@ export default function ProfileScreen() {
       })
       .catch(err => console.log(err));
   }
+
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete your profile?')) {
-      fetch(`http://localhost:3000/api/profile/${userProfile?.uid}`, {
-        method: 'DELETE'
-      })
-        .then(res => res.json())
-        .then(() => {
-          setProfile(null);
-          navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-        })
-        .catch(err => console.log(err));
-    }
+    Alert.alert('Delete Profile', 'Are you sure you want to delete your profile?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete', style: 'destructive', onPress: () => {
+          fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/profile/${userProfile?.uid}`, {
+            method: 'DELETE'
+          })
+            .then(res => res.json())
+            .then(() => {
+              setProfile(null);
+              navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+            })
+            .catch(err => console.log(err));
+        }
+      }
+    ]);
   };
 
   return (
