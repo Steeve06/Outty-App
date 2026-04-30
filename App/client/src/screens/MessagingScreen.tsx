@@ -10,6 +10,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  StatusBar,
+  SafeAreaView,
 } from 'react-native';
 import {
   useNavigation,
@@ -34,6 +36,8 @@ import { RootStackParamList } from '../../../../types';
 import { useAuth } from '../../src/context/AuthContext';
 
 const GREEN = '#2D9B6F';
+const GREEN_LIGHT = '#E8F5EE';
+const GREEN_DARK = '#1e7a54';
 
 type MessagingScreenRouteProp = RouteProp<RootStackParamList, 'MessagingScreen'>;
 
@@ -45,6 +49,46 @@ type Message = {
   type?: 'text' | string;
   readBy?: string[];
 };
+
+function getInitials(name: string) {
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+function formatTime(sentAt: Message['sentAt']): string {
+  if (!sentAt) return '';
+  const date =
+    sentAt instanceof Date
+      ? sentAt
+      : new Date((sentAt as { seconds: number }).seconds * 1000);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatDateDivider(sentAt: Message['sentAt']): string {
+  if (!sentAt) return '';
+  const date =
+    sentAt instanceof Date
+      ? sentAt
+      : new Date((sentAt as { seconds: number }).seconds * 1000);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  if (date.toDateString() === today.toDateString()) return 'Today';
+  if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+  return date.toLocaleDateString([], { month: 'long', day: 'numeric' });
+}
+
+function isSameDay(a: Message['sentAt'], b: Message['sentAt']): boolean {
+  if (!a || !b) return false;
+  const dateA = a instanceof Date ? a : new Date((a as any).seconds * 1000);
+  const dateB = b instanceof Date ? b : new Date((b as any).seconds * 1000);
+  return dateA.toDateString() === dateB.toDateString();
+}
 
 export default function MessagingScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -107,6 +151,7 @@ export default function MessagingScreen() {
 
     const trimmedMessage = messageInput.trim();
     setLoading(true);
+    setMessageInput('');
 
     try {
       await addDoc(collection(db, 'conversations', conversationId, 'messages'), {
@@ -123,270 +168,438 @@ export default function MessagingScreen() {
         lastMessageSenderUid: currentUserUid,
         updatedAt: serverTimestamp(),
       });
-
-      setMessageInput('');
     } catch (error) {
       console.error('Failed to send message:', error);
       Alert.alert('Error', 'Failed to send message.');
+      setMessageInput(trimmedMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const renderMessage = ({ item }: { item: Message }) => {
+  const renderMessage = ({ item, index }: { item: Message; index: number }) => {
     const isOwn = item.senderUid === currentUserUid;
+    const prevItem = index > 0 ? messages[index - 1] : null;
+    const nextItem = index < messages.length - 1 ? messages[index + 1] : null;
+
+    const showDateDivider = !prevItem || !isSameDay(prevItem.sentAt, item.sentAt);
+
+    // Group bubbles — tighten spacing when consecutive messages from same sender
+    const isGroupedWithPrev = prevItem && prevItem.senderUid === item.senderUid && !showDateDivider;
+    const isGroupedWithNext = nextItem && nextItem.senderUid === item.senderUid &&
+      isSameDay(item.sentAt, nextItem?.sentAt);
+
+    const bubbleStyle = isOwn
+      ? [
+          styles.bubbleOwn,
+          isGroupedWithPrev && styles.bubbleOwnGroupedTop,
+          isGroupedWithNext && styles.bubbleOwnGroupedBottom,
+        ]
+      : [
+          styles.bubbleOther,
+          isGroupedWithPrev && styles.bubbleOtherGroupedTop,
+          isGroupedWithNext && styles.bubbleOtherGroupedBottom,
+        ];
 
     return (
-      <View
-        style={[
-          styles.messageRow,
-          isOwn ? styles.messageRowOutgoing : styles.messageRowIncoming,
-        ]}
-      >
+      <>
+        {showDateDivider && item.sentAt && (
+          <View style={styles.dateDivider}>
+            <View style={styles.dateLine} />
+            <Text style={styles.dateText}>{formatDateDivider(item.sentAt)}</Text>
+            <View style={styles.dateLine} />
+          </View>
+        )}
+
         <View
           style={[
-            styles.messageBubble,
-            isOwn ? styles.messageBubbleOutgoing : styles.messageBubbleIncoming,
+            styles.messageRow,
+            isOwn ? styles.messageRowOwn : styles.messageRowOther,
+            { marginBottom: isGroupedWithNext ? 2 : 10 },
           ]}
         >
-          <Text
-            style={[
-              styles.messageText,
-              isOwn ? styles.messageTextOutgoing : styles.messageTextIncoming,
-            ]}
-          >
-            {item.text || ''}
-          </Text>
+          {/* Avatar placeholder for other user — only show at end of group */}
+          {!isOwn && (
+            <View style={styles.avatarSlot}>
+              {!isGroupedWithNext && (
+                <View style={styles.avatarCircle}>
+                  <Text style={styles.avatarInitials}>{getInitials(otherUserName)}</Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          <View style={styles.bubbleColumn}>
+            <View style={bubbleStyle as any}>
+              <Text style={isOwn ? styles.textOwn : styles.textOther}>
+                {item.text || ''}
+              </Text>
+            </View>
+            {/* Timestamp — only show at end of a group */}
+            {!isGroupedWithNext && item.sentAt && (
+              <Text style={[styles.timeLabel, isOwn ? styles.timeLabelOwn : styles.timeLabelOther]}>
+                {formatTime(item.sentAt)}
+              </Text>
+            )}
+          </View>
         </View>
-      </View>
+      </>
     );
   };
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <Text style={styles.emptyTitle}>You matched with {otherUserName}</Text>
+      <View style={styles.emptyIcon}>
+        <Text style={styles.emptyIconText}>💬</Text>
+      </View>
+      <Text style={styles.emptyTitle}>Start the conversation</Text>
       <Text style={styles.emptySubtitle}>
-        Send the first message to start the conversation.
+        You matched with {otherUserName}. Say something nice!
       </Text>
     </View>
   );
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>Back</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Text style={styles.backArrow}>‹</Text>
         </TouchableOpacity>
 
         <View style={styles.headerCenter}>
-          <Text style={styles.userName}>{otherUserName}</Text>
-          {!!otherUserUid && <Text style={styles.userSubtext}>Active conversation</Text>}
+          <View style={styles.headerAvatar}>
+            <Text style={styles.headerAvatarText}>{getInitials(otherUserName)}</Text>
+          </View>
+          <View>
+            <Text style={styles.headerName}>{otherUserName}</Text>
+            <Text style={styles.headerStatus}>● Active now</Text>
+          </View>
         </View>
 
-        <View style={{ width: 40 }} />
+        <View style={{ width: 44 }} />
       </View>
 
-      {initialLoading ? (
-        <View style={styles.loaderWrap}>
-          <ActivityIndicator size="large" color={GREEN} />
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        {initialLoading ? (
+          <View style={styles.loader}>
+            <ActivityIndicator size="large" color={GREEN} />
+          </View>
+        ) : (
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            keyExtractor={(item) => item.id}
+            renderItem={renderMessage}
+            contentContainerStyle={[
+              styles.messagesList,
+              messages.length === 0 && styles.messagesListEmpty,
+            ]}
+            ListEmptyComponent={renderEmptyState}
+            showsVerticalScrollIndicator={false}
+            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
+          />
+        )}
+
+        {/* Input Bar */}
+        <View style={styles.inputBar}>
+          <TextInput
+            style={styles.input}
+            value={messageInput}
+            onChangeText={setMessageInput}
+            placeholder="Message..."
+            placeholderTextColor="#aaa"
+            editable={!loading}
+            multiline
+            maxLength={1000}
+          />
+
+          <TouchableOpacity
+            style={[
+              styles.sendBtn,
+              (!messageInput.trim() || loading) && styles.sendBtnDisabled,
+            ]}
+            onPress={handleSendMessage}
+            disabled={!messageInput.trim() || loading}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.sendBtnIcon}>↑</Text>
+            )}
+          </TouchableOpacity>
         </View>
-      ) : (
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          keyExtractor={(item) => item.id}
-          renderItem={renderMessage}
-          contentContainerStyle={[
-            styles.messagesList,
-            messages.length === 0 && styles.messagesListEmpty,
-          ]}
-          ListEmptyComponent={renderEmptyState}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
-
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          value={messageInput}
-          onChangeText={setMessageInput}
-          placeholder="Type a message..."
-          placeholderTextColor="#999"
-          editable={!loading}
-          multiline
-        />
-
-        <TouchableOpacity
-          style={[styles.sendBtn, loading && styles.sendBtnDisabled]}
-          onPress={handleSendMessage}
-          disabled={loading}
-        >
-          <Text style={styles.sendBtnText}>{loading ? '...' : 'Send'}</Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingTop: 20,
   },
+  flex: { flex: 1 },
 
+  // ── Header ──────────────────────────────────────────────
   header: {
-    marginTop: 36,
-    marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
-
-  headerCenter: {
-    alignItems: 'center',
-    flex: 1,
-  },
-
-  backText: {
-    color: '#3c5a14',
-    fontSize: 18,
-    width: 40,
-  },
-
-  userName: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1a1a1a',
-  },
-
-  userSubtext: {
-    fontSize: 12,
-    color: '#888',
-    marginTop: 2,
-  },
-
-  loaderWrap: {
-    flex: 1,
+  backBtn: {
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
-
-  messagesList: {
-    paddingVertical: 12,
-    paddingBottom: 20,
+  backArrow: {
+    fontSize: 36,
+    color: GREEN,
+    lineHeight: 40,
+    marginTop: -4,
+  },
+  headerCenter: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  headerAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: GREEN_LIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: GREEN,
+  },
+  headerAvatarText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: GREEN_DARK,
+  },
+  headerName: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#111',
+  },
+  headerStatus: {
+    fontSize: 12,
+    color: GREEN,
+    marginTop: 1,
   },
 
+  // ── Messages ─────────────────────────────────────────────
+  messagesList: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
+  },
   messagesListEmpty: {
     flexGrow: 1,
     justifyContent: 'center',
   },
-
-  emptyState: {
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-
-  emptyTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#222',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-
-  emptySubtitle: {
-    fontSize: 15,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-
-  messageRow: {
-    marginBottom: 10,
-    flexDirection: 'row',
-  },
-
-  messageRowOutgoing: {
-    justifyContent: 'flex-end',
-  },
-
-  messageRowIncoming: {
-    justifyContent: 'flex-start',
-  },
-
-  messageBubble: {
-    maxWidth: '80%',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-  },
-
-  messageBubbleOutgoing: {
-    backgroundColor: GREEN,
-    borderBottomRightRadius: 6,
-  },
-
-  messageBubbleIncoming: {
-    backgroundColor: '#f0f0f0',
-    borderBottomLeftRadius: 6,
-  },
-
-  messageText: {
-    fontSize: 15,
-    lineHeight: 20,
-  },
-
-  messageTextOutgoing: {
-    color: '#fff',
-  },
-
-  messageTextIncoming: {
-    color: '#222',
-  },
-
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingTop: 10,
-    paddingBottom: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-    backgroundColor: '#fff',
-  },
-
-  input: {
+  loader: {
     flex: 1,
-    minHeight: 44,
-    maxHeight: 120,
-    backgroundColor: '#f3f3f3',
-    borderRadius: 22,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    marginRight: 10,
-    color: '#111',
-  },
-
-  sendBtn: {
-    backgroundColor: GREEN,
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
-  sendBtnDisabled: {
-    opacity: 0.6,
+  // Date divider
+  dateDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+    gap: 10,
+  },
+  dateLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#ececec',
+  },
+  dateText: {
+    fontSize: 12,
+    color: '#aaa',
+    fontWeight: '500',
+    paddingHorizontal: 4,
   },
 
-  sendBtnText: {
-    color: '#fff',
+  messageRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+  },
+  messageRowOwn: {
+    justifyContent: 'flex-end',
+  },
+  messageRowOther: {
+    justifyContent: 'flex-start',
+  },
+
+  avatarSlot: {
+    width: 34,
+    marginRight: 8,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  avatarCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: GREEN_LIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarInitials: {
+    fontSize: 11,
     fontWeight: '700',
-    fontSize: 14,
+    color: GREEN_DARK,
+  },
+
+  bubbleColumn: {
+    maxWidth: '72%',
+  },
+
+  // Own (outgoing) bubble
+  bubbleOwn: {
+    backgroundColor: GREEN,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 22,
+    borderBottomRightRadius: 5,
+  },
+  bubbleOwnGroupedTop: {
+    borderTopRightRadius: 8,
+  },
+  bubbleOwnGroupedBottom: {
+    borderBottomRightRadius: 8,
+  },
+
+  // Other (incoming) bubble
+  bubbleOther: {
+    backgroundColor: '#f2f2f2',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 22,
+    borderBottomLeftRadius: 5,
+  },
+  bubbleOtherGroupedTop: {
+    borderTopLeftRadius: 8,
+  },
+  bubbleOtherGroupedBottom: {
+    borderBottomLeftRadius: 8,
+  },
+
+  textOwn: {
+    color: '#fff',
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  textOther: {
+    color: '#1a1a1a',
+    fontSize: 16,
+    lineHeight: 22,
+  },
+
+  timeLabel: {
+    fontSize: 11,
+    color: '#bbb',
+    marginTop: 4,
+  },
+  timeLabelOwn: {
+    textAlign: 'right',
+  },
+  timeLabelOther: {
+    textAlign: 'left',
+    marginLeft: 4,
+  },
+
+  // ── Empty State ───────────────────────────────────────────
+  emptyState: {
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  emptyIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: GREEN_LIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  emptyIconText: { fontSize: 32 },
+  emptyTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#111',
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 15,
+    color: '#888',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+
+  // ── Input Bar ─────────────────────────────────────────────
+  inputBar: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    backgroundColor: '#fff',
+    gap: 10,
+  },
+  input: {
+    flex: 1,
+    minHeight: 46,
+    maxHeight: 130,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 24,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#111',
+    lineHeight: 22,
+  },
+  sendBtn: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: GREEN,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: GREEN,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  sendBtnDisabled: {
+    backgroundColor: '#d0d0d0',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  sendBtnIcon: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '700',
   },
 });
