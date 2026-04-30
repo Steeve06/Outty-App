@@ -1,5 +1,5 @@
 const { db } = require('../firebase');
-import { collection, query, where, limit, getDocs, setDoc, serverTimestamp, doc } from 'firebase/firestore';
+import { collection, query, where, limit, getDocs, setDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 
 async function matchUsers(fromUid, toUid) {
     const docRef = db.collection('interactions').doc(`${fromUid}_${toUid}`);
@@ -16,10 +16,10 @@ async function fetchIdsOfInteractedWithUsers(currentUserUid) {
 
         const interactedUids = snapshot.docs.map(doc => doc.data().toUid);
 
-        console.log('Already interacted with UIDs:', interactedUids);
         return interactedUids;
-    } catch (error) {
-        console.error('Error fetching interacted user IDs:', error.message);
+    } 
+    catch (error) 
+    {
         throw error;
     }
 }
@@ -34,9 +34,10 @@ async function removeAlreadyInteractedProfiles(currentUserUid, profiles) {
             profile => profile.uid && !interactedSet.has(profile.uid)
         );
 
-        console.log('Profiles after removing interacted users:', filteredProfiles.length);
         return filteredProfiles;
-    } catch (error) {
+    } 
+    catch (error) 
+    {
         console.error('Error filtering interacted profiles:', error.message);
         throw error;
     }
@@ -49,7 +50,6 @@ export async function loadInitialQueue(currentUserUid) {
         const q = query(profilesRef, limit(20));
 
         const snapshot = await getDocs(q);
-        console.log('Raw snapshot size:', snapshot.size);
 
         const profiles = snapshot.docs
             .map(doc => ({ id: doc.id, ...doc.data() }))
@@ -57,20 +57,19 @@ export async function loadInitialQueue(currentUserUid) {
 
         const cleanedProfiles = await removeAlreadyInteractedProfiles(currentUserUid, profiles);
 
-        console.log('Filtered profiles:', cleanedProfiles.length);
         return cleanedProfiles;
-    } catch (error) {
+    } 
+    catch (error) 
+    {
         console.error('Error message:', error.message);
         throw error;
     }
 }
 
 async function saveInteraction(currentUserUid, targetMatchUid, typeOfInteraction) {
-    console.log('Current user ID = ' + currentUserUid);
-    console.log('Target user ID = ' + targetMatchUid);
-    console.log('Interaction = ' + typeOfInteraction);
-
     try {
+        console.log('interaction saved');
+
         const interactionDocId = `${currentUserUid}_${targetMatchUid}`;
 
         const interactionRef = doc(db, 'interactions', interactionDocId);
@@ -85,6 +84,65 @@ async function saveInteraction(currentUserUid, targetMatchUid, typeOfInteraction
         return interactionDocId;
     } catch (error) {
         console.error('Error saving interaction:', error.message);
+        throw error;
+    }
+}
+
+export async function checkMatch(currentUserUid, targetMatchUid) {
+    try {
+
+        console.log('hit match function');
+
+        const reverseInteractionRef = doc(
+            db,
+            'interactions',
+            `${targetMatchUid}_${currentUserUid}`
+        );
+
+        const reverseSnap = await getDoc(reverseInteractionRef);
+
+        if (!reverseSnap.exists()) {
+            return { matched: false };
+        }
+
+        const reverseData = reverseSnap.data();
+
+        if (reverseData.type !== 'like') {
+            return { matched: false };
+        }
+
+        const pairKey = buildPairKey(currentUserUid, targetMatchUid);
+
+        const matchRef = doc(db, 'matches', pairKey);
+        const conversationRef = doc(db, 'conversations', pairKey);
+
+        await setDoc(matchRef, {
+            participants: [currentUserUid, targetMatchUid],
+            pairKey,
+            status: 'matched',
+            matchedAt: serverTimestamp(),
+            conversationId: pairKey,
+        });
+
+        await setDoc(conversationRef, {
+            participants: [currentUserUid, targetMatchUid],
+            pairKey,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            lastMessageText: '',
+            lastMessageAt: null,
+            lastMessageSenderUid: null,
+        });
+
+        console.log('successful match');
+
+        return {
+            matched: true,
+            matchId: pairKey,
+            conversationId: pairKey,
+        };
+    } catch (error) {
+        console.error('Error checking match:', error.message);
         throw error;
     }
 }
