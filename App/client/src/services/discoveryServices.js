@@ -1,16 +1,49 @@
 const { db } = require('../firebase');
 import { collection, query, where, limit, getDocs, setDoc, serverTimestamp, doc } from 'firebase/firestore';
 
-async function fetchIdsOfInteractedWithUsers(currentUserUid) {
-    // TODO
-}
-
 async function matchUsers(fromUid, toUid) {
     const docRef = db.collection('interactions').doc(`${fromUid}_${toUid}`);
     const doc = await docRef.get();
 }
 
-async function loadInitialQueue(currentUserUid) {
+// (0) Get all target UIDs the current user has already interacted with
+async function fetchIdsOfInteractedWithUsers(currentUserUid) {
+    try {
+        const interactionsRef = collection(db, 'interactions');
+        const q = query(interactionsRef, where('fromUid', '==', currentUserUid));
+
+        const snapshot = await getDocs(q);
+
+        const interactedUids = snapshot.docs.map(doc => doc.data().toUid);
+
+        console.log('Already interacted with UIDs:', interactedUids);
+        return interactedUids;
+    } catch (error) {
+        console.error('Error fetching interacted user IDs:', error.message);
+        throw error;
+    }
+}
+
+// (0.5) Remove profiles already interacted with from the in-memory queue
+async function removeAlreadyInteractedProfiles(currentUserUid, profiles) {
+    try {
+        const interactedUids = await fetchIdsOfInteractedWithUsers(currentUserUid);
+        const interactedSet = new Set(interactedUids);
+
+        const filteredProfiles = profiles.filter(
+            profile => profile.uid && !interactedSet.has(profile.uid)
+        );
+
+        console.log('Profiles after removing interacted users:', filteredProfiles.length);
+        return filteredProfiles;
+    } catch (error) {
+        console.error('Error filtering interacted profiles:', error.message);
+        throw error;
+    }
+}
+
+// (1) Fetch a batch of candidate user profiles from Firestore, excluding the current user
+export async function loadInitialQueue(currentUserUid) {
     try {
         const profilesRef = collection(db, 'profiles');
         const q = query(profilesRef, limit(20));
@@ -20,10 +53,12 @@ async function loadInitialQueue(currentUserUid) {
 
         const profiles = snapshot.docs
             .map(doc => ({ id: doc.id, ...doc.data() }))
-            .filter(profile => profile.uid !== currentUserUid); // filter out self client-side
+            .filter(profile => profile.uid !== currentUserUid);
 
-        console.log('Filtered profiles:', profiles.length);
-        return profiles;
+        const cleanedProfiles = await removeAlreadyInteractedProfiles(currentUserUid, profiles);
+
+        console.log('Filtered profiles:', cleanedProfiles.length);
+        return cleanedProfiles;
     } catch (error) {
         console.error('Error message:', error.message);
         throw error;
