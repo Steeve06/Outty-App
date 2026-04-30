@@ -18,8 +18,6 @@ export default function DiscoverScreen() {
         const currentUid = userProfile?.uid;
         if (!currentUid) return;
 
-        console.log('andre UID is ' + currentUid);
-
         const profiles = await loadInitialQueue(currentUid);
 
         console.log(profiles);

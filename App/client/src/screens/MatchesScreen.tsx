@@ -1,105 +1,172 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../../types';
 import { useAuth } from '../../src/context/AuthContext';
+import { collection, query, where, onSnapshot, doc, getDoc } from 'firebase/firestore';
+
+// @ts-expect-error - firebase module lacks type declarations
+import { db } from '../firebase';
 
 const GREEN = '#2D9B6F';
 
-const MATCHES = [
-  {
-    id: '1',
-    name: 'John Doe',
-    age: 30,
-    location: 'Boulder, CO',
-    tags: ['hiking', 'mountaineering', 'backpacking'],
-    lastMsg: 'Hey! Ready for that hike this weekend?',
-    time: 'Matched 28 days ago',
-    unread: 2,
-    avatar: 'https://images.unsplash.com/photo-1551632432-c735e829929d?q=80&w=200&auto=format&fit=crop'
-  },
-  {
-    id: '2',
-    name: 'Maya Waters',
-    age: 26,
-    location: 'Fort Collins, CO',
-    tags: ['kayaking', 'camping', 'hiking'],
-    lastMsg: 'Found an amazing kayaking spot!',
-    time: 'Matched 29 days ago',
-    unread: 0,
-    avatar: 'https://images.unsplash.com/photo-1501555088652-021faa106b9b?q=80&w=200&auto=format&fit=crop'
-  },
-  {
-    id: '3',
-    name: 'Riley Stone',
-    age: 27,
-    location: 'Golden, CO',
-    tags: ['rock-climbing', 'hiking', 'camping'],
-    lastMsg: "Let's climb next Saturday!",
-    time: 'Matched about 1 month ago',
-    unread: 1,
-    avatar: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=200&auto=format&fit=crop'
-  }
-];
+type Conversation = {
+  id: string;
+  participants: string[];
+  pairKey?: string;
+  lastMessageText?: string;
+  lastMessageAt?: { seconds: number; nanoseconds: number } | null;
+  lastMessageSenderUid?: string | null;
+  createdAt?: { seconds: number; nanoseconds: number } | null;
+  updatedAt?: { seconds: number; nanoseconds: number } | null;
+};
+
+type MatchCardData = Conversation & {
+  otherUserUid: string;
+  otherUserName: string;
+  otherUserAvatar?: string;
+};
 
 export default function MatchesScreen() {
-
   const { firebaseUser, userProfile } = useAuth();
-
-  console.log(firebaseUser);
-  console.log(userProfile);
-
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const renderItem = ({ item }: { item: typeof MATCHES[0] }) => (
-    <TouchableOpacity
-      style={styles.matchCard}
-      onPress={() => {
-        navigation.navigate('MessagingScreen', { name: item.name });
-      }}
-    >
-      <Image source={{ uri: item.avatar }} style={styles.avatar} />
+  const [conversations, setConversations] = useState<MatchCardData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-      <View style={styles.info}>
-        <View style={styles.headerRow}>
-          <Text style={styles.nameText}>{item.name}, {item.age}</Text>
-          {item.unread > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{item.unread}</Text>
-            </View>
-          )}
+  useEffect(() => {
+    const currentUserUid = firebaseUser?.uid || userProfile?.uid;
+    if (!currentUserUid) {
+      setLoading(false);
+      return;
+    }
+
+    const q = query(
+      collection(db, 'conversations'),
+      where('participants', 'array-contains', currentUserUid)
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      async (snapshot) => {
+        try {
+          const baseConversations = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as Conversation[];
+
+          const enrichedConversations = await Promise.all(
+            baseConversations.map(async (conversation) => {
+              const otherUserUid =
+                conversation.participants?.find(uid => uid !== currentUserUid) || 'Unknown';
+
+              let otherUserName = otherUserUid;
+              let otherUserAvatar = '';
+
+              try {
+                const profileRef = doc(db, 'profiles', otherUserUid);
+                const profileSnap = await getDoc(profileRef);
+
+                if (profileSnap.exists()) {
+                  const profileData = profileSnap.data();
+                  otherUserName = profileData.name || otherUserUid;
+                  otherUserAvatar = profileData.photoURL || profileData.avatar || '';
+                }
+              } catch (profileError) {
+                console.error('Error fetching profile for uid:', otherUserUid, profileError);
+              }
+
+              return {
+                ...conversation,
+                otherUserUid,
+                otherUserName,
+                otherUserAvatar,
+              };
+            })
+          );
+
+          setConversations(enrichedConversations);
+          setLoading(false);
+        } catch (error) {
+          console.error('Error processing conversations:', error);
+          setLoading(false);
+        }
+      },
+      (error) => {
+        console.error('Error listening to conversations:', error);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [firebaseUser?.uid, userProfile?.uid]);
+
+  const renderItem = ({ item }: { item: MatchCardData }) => {
+    const lastMsg = item.lastMessageText?.trim()
+      ? item.lastMessageText
+      : 'Say hello to start the conversation.';
+
+    const time = item.lastMessageAt ? 'Recent activity' : 'Matched recently';
+
+    return (
+      <TouchableOpacity
+        style={styles.matchCard}
+        onPress={() => {
+          navigation.navigate('MessagingScreen', {
+            conversationId: item.id,
+            otherUserUid: item.otherUserUid,
+            name: item.otherUserName,
+          } as any);
+        }}
+      >
+        <Image
+          source={{
+            uri:
+              item.otherUserAvatar ||
+              'https://images.unsplash.com/photo-1551632432-c735e829929d?q=80&w=200&auto=format&fit=crop',
+          }}
+          style={styles.avatar}
+        />
+
+        <View style={styles.info}>
+          <View style={styles.headerRow}>
+            <Text style={styles.nameText}>{item.otherUserName}</Text>
+          </View>
+
+          <Text style={styles.locationText}>Conversation active</Text>
+
+          <View style={styles.msgRow}>
+            <Text style={styles.msgIcon}>💬</Text>
+            <Text style={styles.lastMsg} numberOfLines={1}>{lastMsg}</Text>
+          </View>
+
+          <Text style={styles.timeText}>{time}</Text>
         </View>
-
-        <Text style={styles.locationText}>📍 {item.location}</Text>
-
-        <View style={styles.tagRow}>
-          {item.tags.map((tag) => (
-            <View key={tag} style={styles.tag}>
-              <Text style={styles.tagText}>{tag}</Text>
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.msgRow}>
-          <Text style={styles.msgIcon}>💬</Text>
-          <Text style={styles.lastMsg} numberOfLines={1}>{item.lastMsg}</Text>
-        </View>
-        <Text style={styles.timeText}>{item.time}</Text>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Your Matches</Text>
-      <FlatList
-        data={MATCHES}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-      />
+
+      {loading ? (
+        <ActivityIndicator size="large" color={GREEN} />
+      ) : (
+        <FlatList
+          data={conversations}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <Text style={{ color: '#666', textAlign: 'center', marginTop: 40 }}>
+              No active conversations yet.
+            </Text>
+          }
+        />
+      )}
     </View>
   );
 }
@@ -126,14 +193,9 @@ const styles = StyleSheet.create({
   info: { flex: 1, marginLeft: 15 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   nameText: { fontSize: 18, fontWeight: '700', color: '#333' },
-  badge: { width: 22, height: 22, borderRadius: 11, justifyContent: 'center', alignItems: 'center', backgroundColor: GREEN },
-  badgeText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
   locationText: { color: '#888', fontSize: 13, marginTop: 2 },
-  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 8 },
-  tag: { backgroundColor: '#f0f0f0', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, borderWidth: 1, borderColor: '#ddd' },
-  tagText: { fontSize: 10, color: '#555', fontWeight: '600' },
   msgRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
   msgIcon: { fontSize: 14, marginRight: 5 },
   lastMsg: { fontSize: 14, color: '#666', flex: 1 },
-  timeText: { fontSize: 11, color: '#aaa', marginTop: 4 }
+  timeText: { fontSize: 11, color: '#aaa', marginTop: 4 },
 });
