@@ -4,12 +4,10 @@ import { getFirestore } from 'firebase/firestore';
 
 // These are your CLIENT-SIDE (public) Firebase config values.
 const firebaseConfig = {
-  apiKey: "AIzaSyA6L7qHMGeh0Bw9GqWRSZfqAqhUioulQUQ",
-  authDomain: "outty-dev-3a0b1.firebaseapp.com",
-  projectId: "outty-dev-3a0b1",
-  storageBucket: "outty-dev-3a0b1.firebasestorage.app",
-  messagingSenderId: "349245259412",
-  appId: "1:349245259412:web:ca08daf63c28a13beafe81"
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
 const app      = initializeApp(firebaseConfig);
