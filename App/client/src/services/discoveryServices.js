@@ -1,10 +1,13 @@
 const { db } = ('../firebase');
 import { collection, query, where, limit, getDocs, setDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 
-// async function matchUsers(fromUid, toUid) {
-//     // const docRef = db.collection('interactions').doc(`${fromUid}_${toUid}`);
-//     // const doc = await docRef.get();
-// }
+//eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function matchUsers(fromUid, toUid) {
+    // const docRef = db.collection('interactions').doc(`${fromUid}_${toUid}`);
+    const interactionRef = doc(db, 'interactions', `${fromUid}_${toUid}`);
+    const interactionSnap = await getDoc(interactionRef);
+    return interactionSnap.exists() ? interactionSnap.data() : null;
+}
 
 function buildPairKey(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
@@ -149,4 +152,5 @@ export async function checkMatch(currentUserUid, targetMatchUid) {
     }
 }
 
+// module.exports = { loadInitialQueue, saveInteraction };
 module.exports = { loadInitialQueue, matchUsers, saveInteraction };
