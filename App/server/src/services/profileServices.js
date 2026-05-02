@@ -30,7 +30,7 @@ async function updateProfile (uid, updatedData) {
     const docRef = db.collection('profiles').doc(uid);
     const doc = await docRef.get();
     if(doc.exists) {
-        const update = await docRef.update(updatedData);
+        // const update = await docRef.update(updatedData);
         return ('Profile successfully updated ')
     } else {
         throw new Error ('Profile not found')

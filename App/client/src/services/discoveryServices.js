@@ -1,10 +1,10 @@
 const { db } = ('../firebase');
 import { collection, query, where, limit, getDocs, setDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 
-async function matchUsers(fromUid, toUid) {
-    const docRef = db.collection('interactions').doc(`${fromUid}_${toUid}`);
-    // const doc = await docRef.get();
-}
+// async function matchUsers(fromUid, toUid) {
+//     // const docRef = db.collection('interactions').doc(`${fromUid}_${toUid}`);
+//     // const doc = await docRef.get();
+// }
 
 function buildPairKey(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
