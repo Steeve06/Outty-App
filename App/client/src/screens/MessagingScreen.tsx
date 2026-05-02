@@ -85,8 +85,9 @@ function formatDateDivider(sentAt: Message['sentAt']): string {
 
 function isSameDay(a: Message['sentAt'], b: Message['sentAt']): boolean {
   if (!a || !b) return false;
-  const dateA = a instanceof Date ? a : new Date((a as any).seconds * 1000);
-  const dateB = b instanceof Date ? b : new Date((b as any).seconds * 1000);
+
+  const dateA = a instanceof Date ? a : new Date((a as { seconds: number }).seconds * 1000);
+  const dateB = b instanceof Date ? b : new Date((b as { seconds: number }).seconds * 1000);
   return dateA.toDateString() === dateB.toDateString();
 }
 
@@ -97,7 +98,7 @@ export default function MessagingScreen() {
 
   const currentUserUid = firebaseUser?.uid || userProfile?.uid;
   const conversationId = route.params.conversationId;
-  const otherUserUid = route.params.otherUserUid;
+  // const otherUserUid = route.params.otherUserUid;
   const otherUserName = route.params.name || 'Chat';
 
   const [loading, setLoading] = useState(false);
@@ -191,15 +192,15 @@ export default function MessagingScreen() {
 
     const bubbleStyle = isOwn
       ? [
-          styles.bubbleOwn,
-          isGroupedWithPrev && styles.bubbleOwnGroupedTop,
-          isGroupedWithNext && styles.bubbleOwnGroupedBottom,
-        ]
+        styles.bubbleOwn,
+        isGroupedWithPrev && styles.bubbleOwnGroupedTop,
+        isGroupedWithNext && styles.bubbleOwnGroupedBottom,
+      ]
       : [
-          styles.bubbleOther,
-          isGroupedWithPrev && styles.bubbleOtherGroupedTop,
-          isGroupedWithNext && styles.bubbleOtherGroupedBottom,
-        ];
+        styles.bubbleOther,
+        isGroupedWithPrev && styles.bubbleOtherGroupedTop,
+        isGroupedWithNext && styles.bubbleOtherGroupedBottom,
+      ];
 
     return (
       <>
@@ -230,7 +231,7 @@ export default function MessagingScreen() {
           )}
 
           <View style={styles.bubbleColumn}>
-            <View style={bubbleStyle as any}>
+            <View style={bubbleStyle}>
               <Text style={isOwn ? styles.textOwn : styles.textOther}>
                 {item.text || ''}
               </Text>

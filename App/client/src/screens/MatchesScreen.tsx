@@ -118,7 +118,7 @@ export default function MatchesScreen() {
             conversationId: item.id,
             otherUserUid: item.otherUserUid,
             name: item.otherUserName,
-          } as any);
+          });
         }}
       >
         <Image

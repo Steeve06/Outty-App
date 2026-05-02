@@ -5,7 +5,7 @@ export interface UserProfile {
   age?: number;
   location?: string;
   bio?: string;
-  [key: string]: any; // flexible for extra Firestore fields
+  [key: string]: string | number | boolean | undefined;
 }
 
 export declare function loadInitialQueue(currentUserUid: string): Promise<UserProfile[]>;
