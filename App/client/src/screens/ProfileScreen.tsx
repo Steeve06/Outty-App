@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../../../types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
+import PhotoManager from '../components/PhotoManager';
 
 const GREEN = '#2D9B6F';
 const BACKGROUND = '#f8f9fa';
@@ -143,11 +144,11 @@ export default function ProfileScreen() {
       <View style={styles.card}>
         <View style={styles.avatarContainer}>
           <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=300&auto=format&fit=crop' }}
+            source={{ uri: profile?.photos?.[0] ?? 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=300&auto=format&fit=crop' }}
             style={styles.profileImage}
           />
         </View>
-
+        <PhotoManager />
         <View style={styles.infoSection}>
           <Text style={styles.label}>Name</Text>
           <Text style={styles.value}>{profile?.name}</Text>
