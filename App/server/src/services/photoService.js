@@ -41,4 +41,17 @@ const uploadPhoto = async (uid, fileBuffer, mimeType) => {
   return photoUrl;
 };
 
-module.exports = { savePhoto, getPhoto, uploadPhoto };
+const deletePhoto = async (uid, photoUrl) => {
+  const userRef = db.collection('profiles').doc(uid);
+  const doc = await userRef.get();
+
+  if (!doc.exists) {
+    throw new Error('User not found');
+  }
+  await userRef.update({
+    photos: admin.firestore.FieldValue.arrayRemove(photoUrl)
+  }) ;
+  return {message: 'photo deleted successfully'};
+}
+
+module.exports = { savePhoto, getPhoto, uploadPhoto, deletePhoto };
