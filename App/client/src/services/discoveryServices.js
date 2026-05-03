@@ -2,6 +2,7 @@
 const { db } = require('../firebase');
 import { collection, query, where, limit, getDocs, setDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 
+// Returns the interaction doc for this exact direction (fromUid -> toUid), if one exists.
 //eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function matchUsers(fromUid, toUid) {
     const interactionRef = doc(db, 'interactions', `${fromUid}_${toUid}`);
@@ -13,7 +14,7 @@ function buildPairKey(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
 }
 
-// (0) Get all target UIDs the current user has already interacted with
+// Gets all users the current user has already liked, passed, or blocked.
 async function fetchIdsOfInteractedWithUsers(currentUserUid) {
     try {
         const interactionsRef = collection(db, 'interactions');
@@ -30,7 +31,7 @@ async function fetchIdsOfInteractedWithUsers(currentUserUid) {
     }
 }
 
-// (0.5) Remove profiles already interacted with from the in-memory queue
+// Removes profiles the user has already interacted with so they do not reappear in Discover.
 async function removeAlreadyInteractedProfiles(currentUserUid, profiles) {
     try {
         const interactedUids = await fetchIdsOfInteractedWithUsers(currentUserUid);
@@ -48,7 +49,7 @@ async function removeAlreadyInteractedProfiles(currentUserUid, profiles) {
     }
 }
 
-// (1) Fetch a batch of candidate user profiles from Firestore, excluding the current user
+// Loads the first batch of candidate profiles, excluding the current user and prior interactions.
 export async function loadInitialQueue(currentUserUid) {
     try {
         const profilesRef = collection(db, 'profiles');
@@ -70,6 +71,7 @@ export async function loadInitialQueue(currentUserUid) {
     }
 }
 
+// Saves the current user's swipe action, then checks for a mutual like if needed.
 export async function saveInteraction(currentUserUid, targetMatchUid, typeOfInteraction) {
     try {
         const interactionDocId = `${currentUserUid}_${targetMatchUid}`;
@@ -93,6 +95,7 @@ export async function saveInteraction(currentUserUid, targetMatchUid, typeOfInte
     }
 }
 
+// Checks whether the other user already liked back, and creates match + conversation docs if so.
 export async function checkMatch(currentUserUid, targetMatchUid) {
     try {
 
