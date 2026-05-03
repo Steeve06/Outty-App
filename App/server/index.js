@@ -11,7 +11,6 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    // allow requests with no origin (mobile apps, curl, Postman)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -23,8 +22,8 @@ app.use(cors({
   credentials: true,
 }));
 
-// Handle preflight requests for all routes
-app.options('*', cors());
+// Remove line 27 - not needed
+app.use(express.json());
 
 app.use(express.json());
 
