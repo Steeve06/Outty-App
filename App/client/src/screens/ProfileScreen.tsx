@@ -48,6 +48,7 @@ export default function ProfileScreen() {
   const [editInterests, setEditInterests] = useState('');
   const [editSkillLevel, setEditSkillLevel] = useState('');
   const [editAttitude, setEditAttitude] = useState('');
+  const [editInstagram, setEditInstagram] = useState('');
 
   useEffect(() => {
     if (!userProfile?.uid) return;
@@ -90,6 +91,7 @@ export default function ProfileScreen() {
     setModalVisible(true);
     setEditSkillLevel(profile?.skillLevel ?? '');
     setEditAttitude(profile?.attitude ?? '');
+    setEditInstagram(profile?.instagramHandle ?? '');
   };
 
   const handleSave = () => {
@@ -105,6 +107,7 @@ export default function ProfileScreen() {
         ...(editInterests && { interests: editInterests.split(',').map(i => i.trim()) }),
         ...(editSkillLevel && { skillLevel: editSkillLevel }),
         ...(editAttitude && { attitude: editAttitude }),
+        ...(editInstagram && { instagramHandle: editInstagram }),
       })
     })
       .then(() => {
@@ -209,7 +212,7 @@ export default function ProfileScreen() {
       <View style={styles.connectionWrapper}>
         <Text style={styles.sectionLabel}>Connected Accounts</Text>
         <ConnectedAccountSection
-          username="alexrivers"
+          username={profile?.instagramHandle ?? 'Not connected'}
           onDisconnect={() => console.log('Disconnecting...')}
         />
       </View>
@@ -248,7 +251,7 @@ export default function ProfileScreen() {
 
             <Text style={styles.label}>Interests (comma separated)</Text>
             <TextInput style={styles.input} value={editInterests} onChangeText={setEditInterests} />
-            
+
             <Text style={styles.label}>Skill Level</Text>
             <TextInput style={styles.input} value={editSkillLevel} onChangeText={setEditSkillLevel} />
 
@@ -257,6 +260,9 @@ export default function ProfileScreen() {
             <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
               <Text style={styles.saveBtnText}>Save</Text>
             </TouchableOpacity>
+
+            <Text style={styles.label}>Instagram Handle</Text>
+            <TextInput style={styles.input} value={editInstagram} onChangeText={setEditInstagram} placeholder="@yourhandle" />
 
             <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
               <Text style={styles.cancelBtnText}>Cancel</Text>
