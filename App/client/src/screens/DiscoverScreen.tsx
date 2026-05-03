@@ -54,7 +54,7 @@ export default function DiscoverScreen() {
     state?: string;
     bio?: string;
     username?: string;
-    photoURL?: string;
+    photos?: string[];
     interests?: string[];
     skillLevel?: string;
     attitude?: string;
@@ -72,7 +72,7 @@ export default function DiscoverScreen() {
               <Image
                 source={{
                   uri:
-                    activeProfile.photoURL ||
+                    activeProfile.photos?.[0] ||
                     'https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?q=80&w=1000&auto=format&fit=crop',
                 }}
                 style={styles.profileImg}

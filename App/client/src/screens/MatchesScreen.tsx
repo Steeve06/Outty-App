@@ -26,7 +26,7 @@ type Conversation = {
 type MatchCardData = Conversation & {
   otherUserUid: string;
   otherUserName: string;
-  otherUserAvatar?: string;
+  photos?: string[];
 };
 
 export default function MatchesScreen() {
@@ -63,7 +63,7 @@ export default function MatchesScreen() {
                 conversation.participants?.find(uid => uid !== currentUserUid) || 'Unknown';
 
               let otherUserName = otherUserUid;
-              let otherUserAvatar = '';
+              let photos: string[] = [];
 
               try {
                 const profileRef = doc(db, 'profiles', otherUserUid);
@@ -72,8 +72,9 @@ export default function MatchesScreen() {
                 if (profileSnap.exists()) {
                   const profileData = profileSnap.data();
                   otherUserName = profileData.name || otherUserUid;
-                  otherUserAvatar = profileData.photoURL || profileData.avatar || '';
+                  photos = profileData.photos || [];
                 }
+
               } catch (profileError) {
                 console.error('Error fetching profile for uid:', otherUserUid, profileError);
               }
@@ -82,7 +83,7 @@ export default function MatchesScreen() {
                 ...conversation,
                 otherUserUid,
                 otherUserName,
-                otherUserAvatar,
+                photos,
               };
             })
           );
@@ -124,7 +125,7 @@ export default function MatchesScreen() {
         <Image
           source={{
             uri:
-              item.otherUserAvatar ||
+              item.photos?.[0] ||
               'https://images.unsplash.com/photo-1551632432-c735e829929d?q=80&w=200&auto=format&fit=crop',
           }}
           style={styles.avatar}
