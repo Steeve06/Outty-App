@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const { uploadPhoto, getPhoto } = require('../services/photoService');
+const { uploadPhoto, getPhoto, deletePhoto } = require('../services/photoService');
 
 // Store file in memory as buffer
 const upload = multer({ storage: multer.memoryStorage() });
@@ -9,6 +9,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 // Upload photo
 router.post('/:uid', upload.single('photo'), async (req, res) => {
   try {
+    console.log(req.file);
       if (!req.file) {
           return res.status(400).json({ error: 'No file uploaded' });
       }
@@ -35,4 +36,15 @@ router.get('/:uid', async (req, res) => {
   }
 });
 
+router.delete('/:uid', async (req, res) => {
+  try {
+    if (!req.body.photoUrl) {
+      return res.status(400).json({ error: 'Photo URL is required' });
+    }
+    const result = await deletePhoto(req.params.uid, req.body.photoUrl);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(404).json({error: error.message})
+  }
+})
 module.exports = router;
