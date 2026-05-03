@@ -36,7 +36,7 @@ async function ensureUserDocument(user: User): Promise<AppUserProfile> {
             role: 'user',
         };
 
-        await fetch(`http://localhost:3000/api/profile/${user.uid}`, {
+        await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/profile/${user.uid}`, {
             method: 'POST',
             headers: {'Content-Type' : 'application/json'},
             body: JSON.stringify(newProfile)
@@ -64,7 +64,7 @@ async function ensureUserDocument(user: User): Promise<AppUserProfile> {
         mergedProfile.provider !== data.provider ||
         mergedProfile.role !== data.role
     ) {
-        await fetch(`http://localhost:3000/api/profile/${user.uid}`, {
+        await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/profile/${user.uid}`, {
             method: 'PATCH',
             headers: {'Content-Type' : 'application/json'},
             body: JSON.stringify(mergedProfile)
