@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import * as ImagePicker from 'expo-image-picker'
-import { useAuth } from '../context/AuthContext'
+import * as ImagePicker from 'expo-image-picker';
+import { useAuth } from '../context/AuthContext';
 
-function PhotoManager() {
+type PhotoManagerProps = {
+    onPhotoChange?: () => void;
+};
+
+function PhotoManager({ onPhotoChange }: PhotoManagerProps) {
 
   const { userProfile } = useAuth();
   const uid = userProfile?.uid;
@@ -14,7 +18,7 @@ function PhotoManager() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch(`http://localhost:3000/api/photos/${uid}`)
+    fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/photos/${uid}`)
         .then(res => res.json())
         .then(data => setPhoto(data.photos ?? []))
         .catch(err => console.log(err));
@@ -47,25 +51,27 @@ function PhotoManager() {
     const formData = new FormData();
     formData.append('photo', blob, 'photo.jpg');
 
-    const res = await fetch(`http://localhost:3000/api/photos/${uid}`, {
+    const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/photos/${uid}`, {
         method: 'POST',
         body: formData,
     });
 
     const data = await res.json();
     setPhoto(prev => [...prev, data.photoUrl]);
+    onPhotoChange?.();
 
 };
 
   const handleDelete = async (photoUrl: string) => {
     setError('');
-    const res = await fetch(`http://localhost:3000/api/photos/${uid}`, {
+    const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/photos/${uid}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ photoUrl })
     });
     await res.json();
     setPhoto(prev => prev.filter(p => p !== photoUrl));
+    onPhotoChange?.();
 };
 
   return (

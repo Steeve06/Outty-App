@@ -34,7 +34,7 @@ export default function ProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const { userProfile, logout } = useAuth();
-
+  
   // State to store profile data from the backend
   //eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [profile, setProfile] = useState<any>(null);
@@ -61,6 +61,11 @@ export default function ProfileScreen() {
       });
   }, [userProfile?.uid]);
 
+  const refreshProfile = () => {
+    fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/profile/${userProfile?.uid}`)
+        .then(res => res.json())
+        .then(data => setProfile(data));
+  };
   const handleLogout = async () => {
     alert('handleLogout fired');
     try {
@@ -154,7 +159,7 @@ export default function ProfileScreen() {
             style={styles.profileImage}
           />
         </View>
-        <PhotoManager />
+        <PhotoManager onPhotoChange={refreshProfile}/>
         <View style={styles.infoSection}>
           <Text style={styles.label}>Name</Text>
           <Text style={styles.value}>{profile?.name}</Text>
