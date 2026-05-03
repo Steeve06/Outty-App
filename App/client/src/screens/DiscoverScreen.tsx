@@ -50,6 +50,7 @@ export default function DiscoverScreen() {
     name?: string;
     age?: number;
     city?: string;
+    location?: string;
     state?: string;
     bio?: string;
     username?: string;
@@ -82,7 +83,7 @@ export default function DiscoverScreen() {
                   {activeProfile.age ? `, ${activeProfile.age}` : ''}
                 </Text>
                 <Text style={styles.location}>
-                  📍 {activeProfile.city || 'Unknown City'}
+                  📍 {activeProfile.location || 'Unknown City'}
                   {activeProfile.state ? `, ${activeProfile.state}` : ''}
                 </Text>
 
