@@ -11,6 +11,12 @@ export type AppUserProfile = {
     email: string;
     provider: string;
     role: string;
+    bio: string;
+    location: string;
+    interests: [],
+    skillLevel: '',
+    attitude: string,
+    photos: []
 };
 
 type AuthContextValue = {
@@ -34,6 +40,12 @@ async function ensureUserDocument(user: User): Promise<AppUserProfile> {
             email: user.email?.trim().toLowerCase() || '',
             provider: user.providerData?.[0]?.providerId === 'password' ? 'email' : (user.providerData?.[0]?.providerId || 'unknown'),
             role: 'user',
+            bio: '',
+            location: '',
+            interests: [],
+            skillLevel: '',
+            attitude: '',
+            photos: []
         };
 
         await fetch(`http://localhost:3000/api/profile/${user.uid}`, {
@@ -55,6 +67,12 @@ async function ensureUserDocument(user: User): Promise<AppUserProfile> {
                 ? 'email'
                 : user.providerData?.[0]?.providerId || 'unknown'),
         role: data.role || 'user',
+        bio: '',
+        location: '',
+        interests: [],
+        skillLevel: '',
+        attitude: '',
+        photos: []
     };
 
     if (
