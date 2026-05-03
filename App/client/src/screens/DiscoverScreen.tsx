@@ -50,10 +50,11 @@ export default function DiscoverScreen() {
     name?: string;
     age?: number;
     city?: string;
+    location?: string;
     state?: string;
     bio?: string;
     username?: string;
-    photoURL?: string;
+    photos?: string[];
     interests?: string[];
     skillLevel?: string;
     attitude?: string;
@@ -62,64 +63,6 @@ export default function DiscoverScreen() {
 
   return (
     <View style={styles.container}>
-      {/* <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {profilesQueue.length === 0 ? (
-          <Text style={{ textAlign: 'center', marginTop: 40 }}>Loading profiles...</Text>
-        ) : (
-          profilesQueue.map((profile) => (
-            <View key={profile.id} style={styles.card}>
-              <View style={styles.imageWrapper}>
-                <Image
-                  source={{
-                    uri:
-                      profile.photoURL ||
-                      'https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?q=80&w=1000&auto=format&fit=crop',
-                  }}
-                  style={styles.profileImg}
-                />
-                <View style={styles.overlay}>
-                  <Text style={styles.name}>
-                    {profile.name || 'Unknown User'}
-                    {profile.age ? `, ${profile.age}` : ''}
-                  </Text>
-                  <Text style={styles.location}>
-                    📍 {profile.city || 'Unknown City'}
-                    {profile.state ? `, ${profile.state}` : ''}
-                  </Text>
-
-                  <View style={styles.tagRow}>
-                    {(profile.interests || []).map((tag) => (
-                      <View key={tag} style={styles.tag}>
-                        <Text style={styles.tagText}>{tag}</Text>
-                      </View>
-                    ))}
-                  </View>
-
-                  <Text style={styles.handle}>@{profile.username || 'unknown'}</Text>
-                </View>
-              </View>
-
-              <View style={styles.content}>
-                <Text style={styles.bio}>
-                  {profile.bio || 'No bio added yet.'}
-                </Text>
-
-                <View style={styles.statsRow}>
-                  <Stat label="Skill Level" value={profile.skillLevel || '—'} />
-                  <Stat label="Attitude" value={profile.attitude || '—'} />
-                  <Stat label="Max Range" value={profile.maxRange || '—'} />
-                </View>
-
-                <View style={styles.gallery}>
-                  <View style={styles.galleryPlaceholder} />
-                  <View style={styles.galleryPlaceholder} />
-                </View>
-              </View>
-            </View>
-          ))
-        )}
-      </ScrollView> */}
-
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {!activeProfile ? (
           <Text style={{ textAlign: 'center', marginTop: 40 }}>No more profiles.</Text>
@@ -129,7 +72,7 @@ export default function DiscoverScreen() {
               <Image
                 source={{
                   uri:
-                    activeProfile.photoURL ||
+                    activeProfile.photos?.[0] ||
                     'https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?q=80&w=1000&auto=format&fit=crop',
                 }}
                 style={styles.profileImg}
@@ -140,7 +83,7 @@ export default function DiscoverScreen() {
                   {activeProfile.age ? `, ${activeProfile.age}` : ''}
                 </Text>
                 <Text style={styles.location}>
-                  📍 {activeProfile.city || 'Unknown City'}
+                  📍 {activeProfile.location || 'Unknown City'}
                   {activeProfile.state ? `, ${activeProfile.state}` : ''}
                 </Text>
 
@@ -168,22 +111,19 @@ export default function DiscoverScreen() {
               </View>
 
               <View style={styles.gallery}>
-                <View style={styles.galleryPlaceholder} />
-                <View style={styles.galleryPlaceholder} />
+                <Image
+                  source={{uri: activeProfile.photos?.[1]}}
+                  style={styles.galleryPlaceholder}
+                />
+                <Image
+                  source={{uri: activeProfile.photos?.[2]}}
+                  style={styles.galleryPlaceholder}
+                />
               </View>
             </View>
           </View>
         )}
       </ScrollView>
-
-      {/* <View style={styles.actions}>
-        <TouchableOpacity style={[styles.actionBtn, styles.btnNo]}>
-          <Ionicons name="close" size={32} color="#e74c3c" />
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.actionBtn, styles.btnYes]}>
-          <Ionicons name="heart" size={32} color="#fff" />
-        </TouchableOpacity>
-      </View> */}
 
       <View style={styles.actions}>
         <TouchableOpacity
