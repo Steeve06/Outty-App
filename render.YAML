@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: app-backend
+    runtime: node
+    rootDir: App/server
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production

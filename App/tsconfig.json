@@ -2,6 +2,7 @@
   "compilerOptions": {
     "strict": true,
     "module": "ESNext",
-    "jsx": "react-native"
+    "jsx": "react-native",
+    "types": ["node"]
   }
 }
