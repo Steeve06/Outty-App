@@ -111,8 +111,14 @@ export default function DiscoverScreen() {
               </View>
 
               <View style={styles.gallery}>
-                <View style={styles.galleryPlaceholder} />
-                <View style={styles.galleryPlaceholder} />
+                <Image
+                  source={{uri: activeProfile.photos?.[1]}}
+                  style={styles.galleryPlaceholder}
+                />
+                <Image
+                  source={{uri: activeProfile.photos?.[2]}}
+                  style={styles.galleryPlaceholder}
+                />
               </View>
             </View>
           </View>
