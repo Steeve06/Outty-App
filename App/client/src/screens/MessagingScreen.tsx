@@ -276,7 +276,6 @@ export default function MessagingScreen() {
           </View>
           <View>
             <Text style={styles.headerName}>{otherUserName}</Text>
-            <Text style={styles.headerStatus}>● Active now</Text>
           </View>
         </View>
 

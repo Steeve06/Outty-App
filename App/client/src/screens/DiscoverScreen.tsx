@@ -65,7 +65,35 @@ export default function DiscoverScreen() {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {!activeProfile ? (
-          <Text style={{ textAlign: 'center', marginTop: 40 }}>No more profiles.</Text>
+          <View style={styles.emptyStateCard}>
+            <View style={styles.emptyIconWrap}>
+              <Ionicons name="heart-outline" size={42} color={GREEN} />
+            </View>
+
+            <Text style={styles.emptyTitle}>You’re all caught up</Text>
+
+            <Text style={styles.emptySubtitle}>
+              No new profiles right now. Check back a little later for more people nearby.
+            </Text>
+
+            <TouchableOpacity style={styles.emptyRefreshBtn} onPress={() => {
+              async function reloadQueue() {
+                try {
+                  const currentUid = userProfile?.uid;
+                  if (!currentUid) return;
+
+                  const profiles = await loadInitialQueue(currentUid);
+                  setProfilesQueue(profiles);
+                } catch (error) {
+                  console.error('Failed to reload queue:', error);
+                }
+              }
+
+              reloadQueue();
+            }}>
+              <Text style={styles.emptyRefreshText}>Refresh</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           <View key={activeProfile.id} style={styles.card}>
             <View style={styles.imageWrapper}>
@@ -112,11 +140,11 @@ export default function DiscoverScreen() {
 
               <View style={styles.gallery}>
                 <Image
-                  source={{uri: activeProfile.photos?.[1]}}
+                  source={{ uri: activeProfile.photos?.[1] }}
                   style={styles.galleryPlaceholder}
                 />
                 <Image
-                  source={{uri: activeProfile.photos?.[2]}}
+                  source={{ uri: activeProfile.photos?.[2] }}
                   style={styles.galleryPlaceholder}
                 />
               </View>
@@ -198,4 +226,10 @@ const styles = StyleSheet.create({
   actionBtn: { width: 64, height: 64, borderRadius: 32, justifyContent: 'center', alignItems: 'center', elevation: 4, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 5 },
   btnNo: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#eee' },
   btnYes: { backgroundColor: GREEN },
+  emptyStateCard: {width: '30%', minWidth: 340, maxWidth: 420,alignSelf: 'center',backgroundColor: '#fff',borderRadius: 24,paddingVertical: 40,paddingHorizontal: 28,alignItems: 'center',justifyContent: 'center',marginTop: 60,elevation: 5,shadowColor: '#000',shadowOpacity: 0.08,shadowRadius: 10},
+  emptyIconWrap: {width: 84,height: 84,borderRadius: 42,backgroundColor: '#EAF8F1',alignItems: 'center',justifyContent: 'center',marginBottom: 20},
+  emptyTitle: {fontSize: 24,fontWeight: '700',color: '#1f2937',marginBottom: 10,textAlign: 'center',},
+  emptySubtitle: {fontSize: 15,lineHeight: 22,color: '#6b7280',textAlign: 'center',marginBottom: 24,},
+  emptyRefreshBtn: {backgroundColor: GREEN,paddingVertical: 12,paddingHorizontal: 24,borderRadius: 24,},
+  emptyRefreshText: {color: '#fff',fontSize: 15,fontWeight: '600'},
 });
